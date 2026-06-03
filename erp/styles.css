@@ -51,6 +51,33 @@
   }
 }
 
+@keyframes heroSheen {
+  0% {
+    transform: translateX(-130%) skewX(-16deg);
+  }
+  42% {
+    transform: translateX(130%) skewX(-16deg);
+  }
+  100% {
+    transform: translateX(130%) skewX(-16deg);
+  }
+}
+
+@keyframes activeNavGlow {
+  0% {
+    opacity: 0.42;
+    transform: translateY(-120%);
+  }
+  45% {
+    opacity: 0.95;
+    transform: translateY(120%);
+  }
+  100% {
+    opacity: 0.42;
+    transform: translateY(120%);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -358,6 +385,8 @@ button {
   font-weight: 700;
   border: 1px solid transparent;
   text-align: left;
+  position: relative;
+  overflow: hidden;
   transition: transform 0.22s var(--ease-apple), background 0.22s var(--ease-apple), border-color 0.22s var(--ease-apple), color 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple);
 }
 
@@ -367,6 +396,28 @@ button {
   color: var(--gold-light);
   transform: translateX(3px);
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.12), 0 10px 24px rgba(0, 0, 0, 0.16);
+}
+
+.nav-item.active::before {
+  content: "";
+  position: absolute;
+  left: 0;
+  top: 8px;
+  bottom: 8px;
+  width: 3px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, transparent, var(--gold-light), transparent);
+  animation: activeNavGlow 5.8s var(--ease-apple) infinite;
+}
+
+.nav-item.active::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.12) 45%, transparent 72%);
+  transform: translateX(-120%);
+  animation: heroSheen 7s var(--ease-apple) infinite;
+  pointer-events: none;
 }
 
 .nav-item.disabled {
@@ -465,6 +516,21 @@ button {
   position: absolute;
   inset: 0;
   background: linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 34%, transparent 70%, rgba(232, 201, 122, 0.12));
+  pointer-events: none;
+}
+
+.dashboard-hero::before,
+.module-header::before {
+  content: "";
+  position: absolute;
+  top: -30%;
+  bottom: -30%;
+  left: -45%;
+  width: 38%;
+  background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.24), transparent);
+  filter: blur(1px);
+  transform: translateX(-130%) skewX(-16deg);
+  animation: heroSheen 7s var(--ease-apple) infinite;
   pointer-events: none;
 }
 
