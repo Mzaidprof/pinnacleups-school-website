@@ -578,19 +578,62 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
             <img class="brand-logo" src="https://pinnacleups.com/Images/schoollogo.jpeg" alt="">
             <div class="brand-name">${config.schoolName}<span>${config.appName}</span></div>
           </div>
+          <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-controls="mobileNavPanel">
+            <span></span><span></span><span></span>
+            <strong>Menu</strong>
+          </button>
           <div class="user-chip">${escapeHtml(user.username)} | ${escapeHtml(user.role)}</div>
           <button class="ghost-btn" id="logoutButton" type="button">Logout</button>
         </div>
+        ${renderMobileNav(route, user, moduleName)}
         <div id="moduleHost">${renderModule(moduleName, user)}</div>
       </main>
     </div>
   `;
 
   document.getElementById('logoutButton').addEventListener('click', logout);
+  bindMobileNav();
   bindNavigation();
   if (moduleName === 'students') loadStudents();
   if (moduleName === 'teachers') loadTeachers();
   if (moduleName === 'settings') loadSettings();
+}
+
+function renderMobileNav(route, user, moduleName) {
+  const dashboardLabel = `${capitalize(route)} Dashboard`;
+  const moduleItems = [
+    { label: dashboardLabel, module: 'dashboard', icon: icons.Dashboard },
+    ...getRoleModules(user.role).map((item) => ({
+      label: item,
+      module: item === 'My Child' ? 'students' : item.toLowerCase().replace(/\s+/g, ''),
+      icon: icons[item] || icons.Students
+    }))
+  ];
+
+  return `
+    <div class="mobile-nav-panel" id="mobileNavPanel" aria-hidden="true">
+      ${moduleItems.map((item) => {
+        const activeModules = ['dashboard', 'students', 'teachers', 'settings'];
+        const isEnabled = activeModules.includes(item.module);
+        return isEnabled
+          ? `<button class="mobile-nav-item ${moduleName === item.module ? 'active' : ''}" type="button" data-module="${item.module}"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</button>`
+          : `<div class="mobile-nav-item disabled"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</div>`;
+      }).join('')}
+    </div>
+  `;
+}
+
+function bindMobileNav() {
+  const toggle = document.getElementById('mobileNavToggle');
+  const panel = document.getElementById('mobileNavPanel');
+  if (!toggle || !panel) return;
+
+  toggle.addEventListener('click', () => {
+    const isOpen = panel.classList.toggle('open');
+    toggle.classList.toggle('open', isOpen);
+    toggle.setAttribute('aria-expanded', String(isOpen));
+    panel.setAttribute('aria-hidden', String(!isOpen));
+  });
 }
 
 function renderModule(moduleName, user) {
