@@ -588,16 +588,11 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
         </div>
         ${renderMobileNav(route, user, moduleName)}
         <div id="moduleHost">${renderModule(moduleName, user)}</div>
-        <div class="mobile-bottom-bar">
-          <div class="mobile-user-chip">${escapeHtml(user.username)} | ${escapeHtml(user.role)}</div>
-          <button class="ghost-btn mobile-logout" id="mobileLogoutButton" type="button">Logout</button>
-        </div>
       </main>
     </div>
   `;
 
   document.getElementById('logoutButton').addEventListener('click', logout);
-  document.getElementById('mobileLogoutButton').addEventListener('click', logout);
   bindMobileNav();
   bindNavigation();
   if (moduleName === 'students') loadStudents();
@@ -618,13 +613,22 @@ function renderMobileNav(route, user, moduleName) {
 
   return `
     <div class="mobile-nav-panel" id="mobileNavPanel" aria-hidden="true">
-      ${moduleItems.map((item) => {
-        const activeModules = ['dashboard', 'students', 'teachers', 'settings'];
-        const isEnabled = activeModules.includes(item.module);
-        return isEnabled
-          ? `<button class="mobile-nav-item ${moduleName === item.module ? 'active' : ''}" type="button" data-module="${item.module}"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</button>`
-          : `<div class="mobile-nav-item disabled"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</div>`;
-      }).join('')}
+      <div class="mobile-nav-grid">
+        ${moduleItems.map((item) => {
+          const activeModules = ['dashboard', 'students', 'teachers', 'settings'];
+          const isEnabled = activeModules.includes(item.module);
+          return isEnabled
+            ? `<button class="mobile-nav-item ${moduleName === item.module ? 'active' : ''}" type="button" data-module="${item.module}"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</button>`
+            : `<div class="mobile-nav-item disabled"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</div>`;
+        }).join('')}
+      </div>
+      <div class="mobile-nav-account">
+        <div>
+          <span>Signed in</span>
+          <strong>${escapeHtml(user.name || user.username)}</strong>
+        </div>
+        <button class="ghost-btn mobile-menu-logout" id="mobileMenuLogoutButton" type="button">Logout</button>
+      </div>
     </div>
   `;
 }
@@ -640,6 +644,9 @@ function bindMobileNav() {
     toggle.setAttribute('aria-expanded', String(isOpen));
     panel.setAttribute('aria-hidden', String(!isOpen));
   });
+
+  const mobileLogout = document.getElementById('mobileMenuLogoutButton');
+  if (mobileLogout) mobileLogout.addEventListener('click', logout);
 }
 
 function renderModule(moduleName, user) {
