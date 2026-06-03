@@ -798,6 +798,109 @@ td small {
   font-weight: 700;
 }
 
+.child-profile-wrap {
+  margin-top: 18px;
+}
+
+.child-profile-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+  gap: 18px;
+}
+
+.child-profile-card {
+  padding: 22px;
+  border: 1px solid var(--glass-line);
+  border-radius: var(--radius-lg);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--glass-shadow);
+  backdrop-filter: blur(18px) saturate(1.18);
+  -webkit-backdrop-filter: blur(18px) saturate(1.18);
+  position: relative;
+  overflow: hidden;
+  animation: fadeUp 0.34s var(--ease-apple) both;
+}
+
+.child-profile-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.42), transparent 36%, transparent 72%, rgba(232, 201, 122, 0.16));
+  pointer-events: none;
+}
+
+.child-profile-top,
+.child-detail-grid {
+  position: relative;
+  z-index: 1;
+}
+
+.child-profile-top {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  margin-bottom: 20px;
+}
+
+.child-avatar {
+  width: 58px;
+  height: 58px;
+  display: grid;
+  place-items: center;
+  flex: 0 0 58px;
+  border-radius: 18px;
+  background: linear-gradient(135deg, var(--navy), var(--navy-soft));
+  color: var(--gold-light);
+  font-weight: 900;
+  box-shadow: var(--soft-shadow);
+}
+
+.child-profile-card h2 {
+  margin: 5px 0 4px;
+  color: var(--navy);
+  font-family: "Playfair Display", serif;
+  font-size: 1.55rem;
+  line-height: 1.1;
+}
+
+.child-profile-card p {
+  margin: 0;
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.child-detail-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.child-detail {
+  min-width: 0;
+  padding: 13px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.58);
+}
+
+.child-detail > span {
+  display: block;
+  margin-bottom: 6px;
+  color: var(--muted);
+  font-size: 0.75rem;
+  font-weight: 900;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+}
+
+.child-detail strong {
+  display: block;
+  color: var(--navy);
+  font-size: 0.98rem;
+  line-height: 1.35;
+  overflow-wrap: anywhere;
+}
+
 .modal-backdrop {
   position: fixed;
   inset: 0;
@@ -1201,6 +1304,10 @@ td small {
   .settings-grid {
     grid-template-columns: 1fr;
   }
+
+  .child-detail-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -1301,5 +1408,13 @@ td small {
   .holiday-item {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .child-profile-card {
+    padding: 18px;
+  }
+
+  .child-profile-top {
+    align-items: flex-start;
   }
 }
