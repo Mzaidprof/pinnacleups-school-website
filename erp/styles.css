@@ -1265,6 +1265,10 @@ td small {
 
   .erp-layout {
     grid-template-columns: 1fr;
+    background:
+      linear-gradient(180deg, rgba(13, 13, 48, 0.94) 0, rgba(26, 26, 78, 0.88) 190px, rgba(247, 247, 251, 0.96) 430px),
+      url("https://pinnacleups.com/Images/gallery1.jpg") top center/cover no-repeat;
+    position: relative;
   }
 
   .sidebar {
@@ -1273,6 +1277,20 @@ td small {
 
   .main {
     padding: 18px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .main::before {
+    content: "";
+    position: fixed;
+    inset: 72px 0 auto;
+    height: 190px;
+    background:
+      linear-gradient(135deg, rgba(232, 201, 122, 0.24), transparent 42%),
+      linear-gradient(180deg, rgba(255, 255, 255, 0.08), transparent);
+    pointer-events: none;
+    z-index: -1;
   }
 
   .topbar {
@@ -1284,10 +1302,20 @@ td small {
     align-items: center;
     flex-direction: row;
     justify-content: space-between;
-    border-bottom: 1px solid var(--glass-line);
-    background: rgba(247, 247, 251, 0.78);
-    backdrop-filter: blur(18px) saturate(1.2);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    border-bottom: 1px solid rgba(232, 201, 122, 0.24);
+    background: rgba(13, 13, 48, 0.72);
+    box-shadow: 0 14px 34px rgba(13, 13, 48, 0.2);
+    backdrop-filter: blur(22px) saturate(1.28);
+    -webkit-backdrop-filter: blur(22px) saturate(1.28);
+  }
+
+  .mobile-brand .brand-name {
+    color: var(--white);
+    text-shadow: 0 1px 12px rgba(13, 13, 48, 0.35);
+  }
+
+  .mobile-brand .brand-name span {
+    color: var(--gold-light);
   }
 
   .topbar > .user-chip,
@@ -1332,14 +1360,14 @@ td small {
     flex-direction: column;
     flex-shrink: 0;
     gap: 4px;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(232, 201, 122, 0.35);
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.78);
-    color: var(--navy);
+    background: rgba(255, 255, 255, 0.16);
+    color: var(--white);
     font-weight: 900;
-    box-shadow: var(--soft-shadow);
-    backdrop-filter: blur(14px) saturate(1.15);
-    -webkit-backdrop-filter: blur(14px) saturate(1.15);
+    box-shadow: 0 12px 26px rgba(13, 13, 48, 0.24);
+    backdrop-filter: blur(16px) saturate(1.25);
+    -webkit-backdrop-filter: blur(16px) saturate(1.25);
   }
 
   .mobile-nav-toggle span {
@@ -1347,7 +1375,7 @@ td small {
     height: 2px;
     display: block;
     border-radius: 999px;
-    background: var(--navy);
+    background: var(--gold-light);
     transition: transform 0.24s var(--ease-apple), opacity 0.24s var(--ease-apple);
   }
 
@@ -1375,18 +1403,29 @@ td small {
     margin-bottom: 18px;
     padding: 12px;
     display: block;
-    border: 1px solid var(--glass-line);
+    border: 1px solid rgba(232, 201, 122, 0.22);
     border-radius: var(--radius-lg);
-    background: rgba(255, 255, 255, 0.78);
-    box-shadow: var(--glass-shadow);
-    backdrop-filter: blur(18px) saturate(1.2);
-    -webkit-backdrop-filter: blur(18px) saturate(1.2);
+    background:
+      linear-gradient(145deg, rgba(255, 255, 255, 0.88), rgba(250, 243, 224, 0.72)),
+      linear-gradient(180deg, rgba(26, 26, 78, 0.08), transparent);
+    box-shadow: 0 22px 55px rgba(13, 13, 48, 0.24);
+    backdrop-filter: blur(24px) saturate(1.26);
+    -webkit-backdrop-filter: blur(24px) saturate(1.26);
     opacity: 0;
     max-height: 0;
     overflow: hidden;
     transform: translateY(-10px) scale(0.98);
     pointer-events: none;
     transition: opacity 0.28s var(--ease-apple), max-height 0.34s var(--ease-apple), transform 0.34s var(--ease-apple);
+    position: relative;
+  }
+
+  .mobile-nav-panel::before {
+    content: "";
+    position: absolute;
+    inset: 0 0 auto;
+    height: 5px;
+    background: linear-gradient(90deg, var(--gold), var(--gold-light), rgba(26, 26, 78, 0.85));
   }
 
   .mobile-nav-panel.open {
@@ -1397,6 +1436,8 @@ td small {
   }
 
   .mobile-nav-grid {
+    position: relative;
+    z-index: 1;
     display: grid;
     grid-template-columns: repeat(2, minmax(0, 1fr));
     gap: 10px;
@@ -1408,9 +1449,10 @@ td small {
     display: flex;
     align-items: center;
     gap: 9px;
-    border: 1px solid var(--line);
+    border: 1px solid rgba(201, 168, 76, 0.2);
     border-radius: var(--radius);
-    background: rgba(255, 255, 255, 0.66);
+    background:
+      linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(255, 255, 255, 0.58));
     color: var(--navy);
     font-weight: 900;
     text-align: left;
@@ -1423,9 +1465,16 @@ td small {
   }
 
   .mobile-nav-item.active {
-    border-color: rgba(201, 168, 76, 0.58);
-    background: linear-gradient(135deg, rgba(250, 243, 224, 0.95), rgba(255, 255, 255, 0.7));
-    box-shadow: var(--soft-shadow);
+    border-color: rgba(232, 201, 122, 0.72);
+    background:
+      linear-gradient(135deg, rgba(26, 26, 78, 0.96), rgba(42, 42, 110, 0.86)),
+      linear-gradient(135deg, rgba(250, 243, 224, 0.95), rgba(255, 255, 255, 0.7));
+    color: var(--white);
+    box-shadow: 0 14px 28px rgba(13, 13, 48, 0.2);
+  }
+
+  .mobile-nav-item.active span {
+    color: var(--gold-light);
   }
 
   .mobile-nav-item:not(.disabled):hover {
@@ -1518,6 +1567,22 @@ td small {
   .module-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+
+  .dashboard-hero,
+  .module-header {
+    border-color: rgba(232, 201, 122, 0.3);
+    box-shadow: 0 24px 60px rgba(13, 13, 48, 0.24);
+  }
+
+  .info-card,
+  .notice-card,
+  .table-card,
+  .settings-card,
+  .child-profile-card {
+    border-color: rgba(201, 168, 76, 0.16);
+    background: rgba(255, 255, 255, 0.86);
+    box-shadow: 0 16px 36px rgba(13, 13, 48, 0.12);
   }
 
   .settings-grid {
