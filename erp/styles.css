@@ -836,6 +836,7 @@ td small {
   position: relative;
   overflow: hidden;
   animation: fadeUp 0.34s var(--ease-apple) both;
+  transition: transform 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple);
 }
 
 .child-profile-card::after {
@@ -856,7 +857,7 @@ td small {
   display: flex;
   align-items: center;
   gap: 14px;
-  margin-bottom: 20px;
+  margin-bottom: 14px;
 }
 
 .child-avatar {
@@ -898,6 +899,17 @@ td small {
   margin: 0;
   color: var(--muted);
   font-weight: 800;
+}
+
+.child-preview-copy {
+  min-width: 0;
+}
+
+.child-view-btn {
+  position: relative;
+  z-index: 1;
+  margin-top: 4px;
+  width: auto;
 }
 
 .child-detail-grid {
@@ -966,9 +978,10 @@ td small {
 }
 
 .student-detail-modal {
-  width: min(760px, 100%);
-  max-height: min(760px, 92vh);
-  overflow: auto;
+  width: min(900px, 100%);
+  max-height: calc(100vh - 36px);
+  overflow-y: auto;
+  overflow-x: hidden;
   padding: 24px;
   border-radius: var(--radius-lg);
   border: 1px solid var(--glass-line);
@@ -1008,6 +1021,10 @@ td small {
   overflow: hidden;
 }
 
+.student-detail-modal .child-detail-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
 .student-detail-hero h2 {
   margin: 5px 0 6px;
   font-family: "Playfair Display", serif;
@@ -1022,16 +1039,16 @@ td small {
 }
 
 .student-detail-photo {
-  width: 92px;
-  height: 92px;
+  width: 118px;
+  height: 118px;
   display: grid;
   place-items: center;
-  flex: 0 0 92px;
+  flex: 0 0 118px;
   border: 3px solid rgba(232, 201, 122, 0.92);
-  border-radius: 28px;
+  border-radius: 32px;
   background: linear-gradient(135deg, var(--navy), var(--navy-soft));
   color: var(--gold-light);
-  font-size: 1.45rem;
+  font-size: 1.8rem;
   font-weight: 900;
   box-shadow: var(--soft-shadow);
   overflow: hidden;
@@ -1451,6 +1468,10 @@ td small {
   .child-detail-grid {
     grid-template-columns: 1fr;
   }
+
+  .student-detail-modal .child-detail-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
 }
 
 @media (max-width: 560px) {
@@ -1565,6 +1586,10 @@ td small {
     padding: 16px;
   }
 
+  .student-detail-modal .child-detail-grid {
+    grid-template-columns: 1fr;
+  }
+
   .student-detail-hero {
     padding: 16px;
     align-items: flex-start;
@@ -1572,9 +1597,9 @@ td small {
   }
 
   .student-detail-photo {
-    width: 82px;
-    height: 82px;
-    flex-basis: 82px;
+    width: 96px;
+    height: 96px;
+    flex-basis: 96px;
     border-radius: 24px;
   }
 
