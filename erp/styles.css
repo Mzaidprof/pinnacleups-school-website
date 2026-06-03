@@ -53,19 +53,19 @@
 
 @keyframes heroSheen {
   0% {
-    transform: translateX(-130%) skewX(-16deg);
+    transform: translateX(-180%) skewX(-16deg);
   }
   16% {
-    transform: translateX(12%) skewX(-16deg);
+    transform: translateX(4%) skewX(-16deg);
   }
   46% {
-    transform: translateX(46%) skewX(-16deg);
+    transform: translateX(54%) skewX(-16deg);
   }
   72% {
-    transform: translateX(130%) skewX(-16deg);
+    transform: translateX(220%) skewX(-16deg);
   }
   100% {
-    transform: translateX(130%) skewX(-16deg);
+    transform: translateX(220%) skewX(-16deg);
   }
 }
 
@@ -81,6 +81,18 @@
   100% {
     opacity: 0.42;
     transform: translateY(120%);
+  }
+}
+
+@keyframes navSheen {
+  0% {
+    transform: translateX(-120%);
+  }
+  44% {
+    transform: translateX(120%);
+  }
+  100% {
+    transform: translateX(120%);
   }
 }
 
@@ -422,7 +434,7 @@ button {
   inset: 0;
   background: linear-gradient(115deg, transparent 0%, rgba(255, 255, 255, 0.12) 45%, transparent 72%);
   transform: translateX(-120%);
-  animation: heroSheen 7s var(--ease-apple) infinite;
+  animation: navSheen 7s var(--ease-apple) infinite;
   pointer-events: none;
 }
 
@@ -536,11 +548,11 @@ button {
   position: absolute;
   top: -30%;
   bottom: -30%;
-  left: -45%;
-  width: 38%;
+  left: -35%;
+  width: 52%;
   background: linear-gradient(105deg, transparent, rgba(255, 255, 255, 0.24), transparent);
   filter: blur(1px);
-  transform: translateX(-130%) skewX(-16deg);
+  transform: translateX(-180%) skewX(-16deg);
   animation: heroSheen 7s var(--ease-apple) infinite;
   pointer-events: none;
 }
