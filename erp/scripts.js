@@ -587,11 +587,16 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
         </div>
         ${renderMobileNav(route, user, moduleName)}
         <div id="moduleHost">${renderModule(moduleName, user)}</div>
+        <div class="mobile-bottom-bar">
+          <div class="mobile-user-chip">${escapeHtml(user.username)} | ${escapeHtml(user.role)}</div>
+          <button class="ghost-btn mobile-logout" id="mobileLogoutButton" type="button">Logout</button>
+        </div>
       </main>
     </div>
   `;
 
   document.getElementById('logoutButton').addEventListener('click', logout);
+  document.getElementById('mobileLogoutButton').addEventListener('click', logout);
   bindMobileNav();
   bindNavigation();
   if (moduleName === 'students') loadStudents();
@@ -718,7 +723,17 @@ function getRoleModules(role) {
 
 function bindNavigation() {
   document.querySelectorAll('[data-module]').forEach((button) => {
-    button.addEventListener('click', () => routeToModule(button.dataset.module));
+    button.addEventListener('click', () => {
+      const panel = document.getElementById('mobileNavPanel');
+      const toggle = document.getElementById('mobileNavToggle');
+      if (panel && toggle) {
+        panel.classList.remove('open');
+        toggle.classList.remove('open');
+        toggle.setAttribute('aria-expanded', 'false');
+        panel.setAttribute('aria-hidden', 'true');
+      }
+      routeToModule(button.dataset.module);
+    });
   });
 }
 
