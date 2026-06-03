@@ -514,13 +514,13 @@ function renderLogin() {
           <div class="brand-copy">
             <div class="section-kicker">ERP Access</div>
             <h1>Secure school portal</h1>
-            <p>One login for administrators, teachers, and parents, connected to the existing Pinnacle school database.</p>
+            <p>A simple and secure way for the Pinnacle community to stay connected with school records, learning updates, and daily progress.</p>
           </div>
         </div>
         <form class="login-card" id="loginForm">
-          <div class="section-kicker">Phase 2</div>
+          <div class="section-kicker">Pinnacle School Portal</div>
           <h2>Sign in</h2>
-          <p>Use your assigned username and password to open your dashboard.</p>
+          <p>Welcome back. Please sign in to continue to your school dashboard.</p>
           <div class="field">
             <label for="username">Username</label>
             <input id="username" name="username" autocomplete="username" required>
@@ -605,7 +605,7 @@ function renderDashboardHome(user) {
     <section class="dashboard-hero">
       <div class="section-kicker">${escapeHtml(user.role)} Dashboard</div>
       <h1>Welcome, ${escapeHtml(user.name || user.username)}</h1>
-      <p>This dashboard is protected by authentication and role-based access control. Student Management is now available from the sidebar.</p>
+      <p>Your school workspace is ready. Use the sidebar to view the information and tools available for your role.</p>
     </section>
     <section class="info-grid">
       <article class="info-card"><span>Logged-in username</span><strong>${escapeHtml(user.username)}</strong></article>
@@ -613,8 +613,8 @@ function renderDashboardHome(user) {
       <article class="info-card"><span>Access</span><strong>${escapeHtml(user.role)} dashboard only</strong></article>
     </section>
     <section class="notice-card">
-      <span>Phase 3 Scope</span>
-      <p>Student Management is active. Attendance, Marks, Fees, Notifications, Reports, Academic Calendar, and Settings functionality remain reserved for future phases.</p>
+      <span>School Updates</span>
+      <p>Student records are available now. More school services will be introduced step by step as the portal grows.</p>
     </section>
   `;
 }
@@ -655,7 +655,7 @@ function renderSidebar(route, user, moduleName) {
         </button>
         ${futureLinks}
       </nav>
-      <div class="sidebar-foot">Built on the existing Pinnacle website theme and Google Sheets database.</div>
+      <div class="sidebar-foot">Pinnacle Upper Primary School · School Portal</div>
     </aside>
   `;
 }
