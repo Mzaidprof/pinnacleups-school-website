@@ -512,7 +512,6 @@ function renderLogin() {
             <div class="brand-name">Pinnacle Upper Primary School <span>English Medium | CBSE</span></div>
           </div>
           <div class="brand-copy">
-            <div class="section-kicker">ERP Access</div>
             <h1>Secure school portal</h1>
             <p>A simple and secure way for the Pinnacle community to stay connected with school records, learning updates, and daily progress.</p>
           </div>
