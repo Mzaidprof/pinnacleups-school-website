@@ -18,6 +18,35 @@
   --radius-lg: 20px;
 }
 
+@keyframes fadeUp {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes softPulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0.28);
+  }
+  70% {
+    box-shadow: 0 0 0 12px rgba(201, 168, 76, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(201, 168, 76, 0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 * {
   box-sizing: border-box;
 }
@@ -28,6 +57,10 @@ body {
   font-family: "DM Sans", Arial, sans-serif;
   color: var(--text);
   background: var(--page);
+}
+
+html {
+  scroll-behavior: smooth;
 }
 
 button,
@@ -52,6 +85,19 @@ button {
   padding: 24px;
 }
 
+.loading-screen .user-chip::before {
+  content: "";
+  width: 16px;
+  height: 16px;
+  margin-right: 10px;
+  display: inline-block;
+  vertical-align: -3px;
+  border: 2px solid rgba(26, 26, 78, 0.18);
+  border-top-color: var(--gold);
+  border-radius: 50%;
+  animation: spin 0.8s linear infinite;
+}
+
 .login-screen {
   background:
     linear-gradient(90deg, rgba(13, 13, 48, 0.88), rgba(26, 26, 78, 0.7)),
@@ -67,6 +113,7 @@ button {
   border-radius: var(--radius-lg);
   background: rgba(255, 255, 255, 0.96);
   box-shadow: var(--shadow);
+  animation: fadeUp 0.48s ease both;
 }
 
 .login-brand {
@@ -212,6 +259,14 @@ button {
   transform: translateY(-1px);
 }
 
+.primary-btn:focus-visible,
+.ghost-btn:focus-visible,
+.text-btn:focus-visible,
+.nav-action:focus-visible {
+  outline: 3px solid rgba(201, 168, 76, 0.36);
+  outline-offset: 2px;
+}
+
 .primary-btn:disabled {
   cursor: wait;
   opacity: 0.72;
@@ -243,6 +298,7 @@ button {
   background: var(--navy-dark);
   color: var(--white);
   border-right: 3px solid var(--gold);
+  animation: fadeUp 0.36s ease both;
 }
 
 .sidebar .brand-logo {
@@ -269,12 +325,14 @@ button {
   font-weight: 700;
   border: 1px solid transparent;
   text-align: left;
+  transition: transform 0.18s ease, background 0.18s ease, border-color 0.18s ease, color 0.18s ease;
 }
 
 .nav-item.active {
   background: rgba(201, 168, 76, 0.16);
   border-color: rgba(201, 168, 76, 0.45);
   color: var(--gold-light);
+  transform: translateX(3px);
 }
 
 .nav-item.disabled {
@@ -284,6 +342,7 @@ button {
 
 .nav-action:hover {
   background: rgba(255, 255, 255, 0.07);
+  transform: translateX(3px);
 }
 
 .nav-icon {
@@ -307,6 +366,10 @@ button {
 .main {
   min-width: 0;
   padding: 28px;
+}
+
+#moduleHost {
+  animation: fadeUp 0.32s ease both;
 }
 
 .topbar {
@@ -356,6 +419,7 @@ button {
     url("https://pinnacleups.com/Images/gallery4.jpg") center/cover no-repeat;
   color: var(--white);
   box-shadow: var(--shadow);
+  animation: fadeUp 0.36s ease both;
 }
 
 .dashboard-hero h1 {
@@ -387,6 +451,15 @@ button {
   border-radius: var(--radius);
   background: var(--white);
   box-shadow: var(--soft-shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.info-card:hover,
+.notice-card:hover,
+.table-card:hover,
+.settings-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
 }
 
 .info-card span,
@@ -427,6 +500,7 @@ button {
     url("https://pinnacleups.com/Images/gallery2.jpg") center/cover no-repeat;
   color: var(--white);
   box-shadow: var(--shadow);
+  animation: fadeUp 0.36s ease both;
 }
 
 .module-header h1 {
@@ -477,6 +551,7 @@ button {
   border-radius: var(--radius);
   background: var(--white);
   box-shadow: var(--soft-shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
 }
 
 .table-scroll {
@@ -507,6 +582,14 @@ th {
 
 td {
   color: var(--text);
+}
+
+tbody tr {
+  transition: background 0.16s ease;
+}
+
+tbody tr:hover {
+  background: rgba(201, 168, 76, 0.06);
 }
 
 td small {
@@ -570,6 +653,7 @@ td small {
   display: grid;
   place-items: center;
   background: rgba(13, 13, 48, 0.58);
+  animation: fadeUp 0.18s ease both;
 }
 
 .student-form {
@@ -580,6 +664,92 @@ td small {
   border-radius: var(--radius-lg);
   background: var(--white);
   box-shadow: var(--shadow);
+  animation: fadeUp 0.24s ease both;
+}
+
+.settings-grid {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(280px, 0.6fr);
+  gap: 18px;
+}
+
+.settings-card {
+  padding: 20px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: var(--white);
+  box-shadow: var(--soft-shadow);
+  transition: transform 0.18s ease, box-shadow 0.18s ease;
+}
+
+.settings-card span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.settings-card p {
+  margin: 0 0 14px;
+  color: var(--muted);
+  line-height: 1.65;
+}
+
+.settings-card-head {
+  margin-bottom: 16px;
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.promotion-flow {
+  display: grid;
+  gap: 8px;
+}
+
+.promotion-flow div,
+.holiday-item {
+  padding: 12px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: #fbfbfe;
+}
+
+.holiday-form {
+  margin-bottom: 18px;
+}
+
+.holiday-list {
+  display: grid;
+  gap: 10px;
+}
+
+.holiday-item {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.holiday-item small {
+  display: block;
+  margin-top: 4px;
+  color: var(--muted);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }
 
 .form-head {
@@ -673,6 +843,10 @@ td small {
     align-items: flex-start;
     flex-direction: column;
   }
+
+  .settings-grid {
+    grid-template-columns: 1fr;
+  }
 }
 
 @media (max-width: 560px) {
@@ -716,5 +890,10 @@ td small {
 
     .form-grid {
       grid-template-columns: 1fr;
+    }
+
+    .holiday-item {
+      align-items: flex-start;
+      flex-direction: column;
     }
   }
