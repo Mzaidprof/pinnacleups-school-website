@@ -652,18 +652,30 @@ function renderModule(moduleName, user) {
 function renderDashboardHome(user) {
   return `
     <section class="dashboard-hero">
-      <div class="section-kicker">${escapeHtml(user.role)} Dashboard</div>
+      <div class="section-kicker">Pinnacle School Portal</div>
       <h1>Welcome, ${escapeHtml(user.name || user.username)}</h1>
-      <p>Your school workspace is ready. Use the sidebar to view the information and tools available for your role.</p>
+      <p>A calm space for school updates, student progress, and everyday communication from Pinnacle Upper Primary School.</p>
     </section>
     <section class="info-grid">
-      <article class="info-card"><span>Logged-in username</span><strong>${escapeHtml(user.username)}</strong></article>
-      <article class="info-card"><span>Role</span><strong>${escapeHtml(user.role)}</strong></article>
-      <article class="info-card"><span>Access</span><strong>${escapeHtml(user.role)} dashboard only</strong></article>
+      <article class="info-card portal-card">
+        <span>Admissions Open</span>
+        <strong>New academic year admissions have started</strong>
+        <p>Parents may contact the school office for admission guidance, required documents, and class availability.</p>
+      </article>
+      <article class="info-card portal-card">
+        <span>School Reopening</span>
+        <strong>Classes begin from July 15</strong>
+        <p>Students are requested to arrive on time in neat uniform with books, diary, and a refreshed learning spirit.</p>
+      </article>
+      <article class="info-card portal-card">
+        <span>Parent Connect</span>
+        <strong>Stay updated with school notices</strong>
+        <p>Important announcements, academic updates, and student information will be shared here as the portal grows.</p>
+      </article>
     </section>
     <section class="notice-card">
-      <span>School Updates</span>
-      <p>Student records are available now. More school services will be introduced step by step as the portal grows.</p>
+      <span>Campus Note</span>
+      <p>Pinnacle Upper Primary School is preparing a smooth, organized start to the academic year with renewed focus on discipline, creativity, sports, and joyful learning.</p>
     </section>
   `;
 }
