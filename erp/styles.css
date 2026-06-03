@@ -633,6 +633,33 @@ button {
   font-size: 1.12rem;
 }
 
+.portal-card {
+  position: relative;
+  overflow: hidden;
+}
+
+.portal-card::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.36), transparent 34%, transparent 74%, rgba(232, 201, 122, 0.12));
+  pointer-events: none;
+}
+
+.portal-card strong,
+.portal-card p,
+.portal-card span {
+  position: relative;
+  z-index: 1;
+}
+
+.portal-card p {
+  margin: 10px 0 0;
+  color: var(--muted);
+  line-height: 1.55;
+  font-size: 0.94rem;
+}
+
 .notice-card {
   margin-top: 18px;
 }
