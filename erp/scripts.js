@@ -651,7 +651,7 @@ function openStudentForm(student = {}) {
   const modal = document.createElement('div');
   modal.className = 'modal-backdrop';
   modal.innerHTML = `
-    <form class="student-form" id="studentForm">
+    <form class="student-form" id="studentForm" action="javascript:void(0)" novalidate>
       <div class="form-head">
         <div>
           <div class="section-kicker">${isEdit ? 'Edit Student' : 'Add Student'}</div>
@@ -685,14 +685,15 @@ function openStudentForm(student = {}) {
           <option value="Inactive" ${student.Status === 'Inactive' ? 'selected' : ''}>Inactive</option>
         </select>
       </div>
-      <button class="primary-btn" type="submit">${isEdit ? 'Save Changes' : 'Add Student'}</button>
+      <button class="primary-btn" id="saveStudentButton" type="button">${isEdit ? 'Save Changes' : 'Add Student'}</button>
       <div class="message" id="studentFormMessage"></div>
     </form>
   `;
 
   document.body.appendChild(modal);
   document.getElementById('closeStudentForm').addEventListener('click', () => modal.remove());
-  document.getElementById('studentForm').addEventListener('submit', (event) => submitStudentForm(event, modal));
+  document.getElementById('studentForm').addEventListener('submit', (event) => event.preventDefault());
+  document.getElementById('saveStudentButton').addEventListener('click', () => submitStudentForm(modal));
 }
 
 function renderStudentField(name, label, value = '', required = false, type = 'text') {
@@ -704,25 +705,44 @@ function renderStudentField(name, label, value = '', required = false, type = 't
   `;
 }
 
-function submitStudentForm(event, modal) {
-  event.preventDefault();
-  const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+function submitStudentForm(modal) {
+  const form = document.getElementById('studentForm');
+  const saveButton = document.getElementById('saveStudentButton');
   const message = document.getElementById('studentFormMessage');
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  if (!form.reportValidity()) return;
+
   message.textContent = '';
+  saveButton.disabled = true;
+  saveButton.textContent = 'Saving...';
 
   api.saveStudent(data)
     .then((result) => {
       if (!result.success) {
         message.textContent = result.message || 'Unable to save student';
+        saveButton.disabled = false;
+        saveButton.textContent = data.StudentID ? 'Save Changes' : 'Add Student';
         return;
       }
       modal.remove();
+      keepStudentsModuleInUrl();
       loadStudents();
     })
     .catch((error) => {
       console.error(error);
       message.textContent = 'Unable to save student';
+      saveButton.disabled = false;
+      saveButton.textContent = data.StudentID ? 'Save Changes' : 'Add Student';
     });
+}
+
+function keepStudentsModuleInUrl() {
+  const base = window.location.href.split('?')[0];
+  const desiredUrl = `${base}?page=${currentRoute}&module=students`;
+  if (window.location.href !== desiredUrl) {
+    window.history.replaceState(null, '', desiredUrl);
+  }
 }
 
 function deactivateStudent(studentId) {
