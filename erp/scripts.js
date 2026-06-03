@@ -587,6 +587,7 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
           <button class="ghost-btn" id="logoutButton" type="button">Logout</button>
         </div>
         ${renderMobileNav(route, user, moduleName)}
+        <div class="mobile-nav-scrim" id="mobileNavScrim" aria-hidden="true"></div>
         <div id="moduleHost">${renderModule(moduleName, user)}</div>
       </main>
     </div>
@@ -636,14 +637,22 @@ function renderMobileNav(route, user, moduleName) {
 function bindMobileNav() {
   const toggle = document.getElementById('mobileNavToggle');
   const panel = document.getElementById('mobileNavPanel');
+  const scrim = document.getElementById('mobileNavScrim');
   if (!toggle || !panel) return;
 
-  toggle.addEventListener('click', () => {
-    const isOpen = panel.classList.toggle('open');
+  const setMobileNavOpen = (isOpen) => {
+    panel.classList.toggle('open', isOpen);
     toggle.classList.toggle('open', isOpen);
+    if (scrim) scrim.classList.toggle('open', isOpen);
     toggle.setAttribute('aria-expanded', String(isOpen));
     panel.setAttribute('aria-hidden', String(!isOpen));
+  };
+
+  toggle.addEventListener('click', () => {
+    setMobileNavOpen(!panel.classList.contains('open'));
   });
+
+  if (scrim) scrim.addEventListener('click', () => setMobileNavOpen(false));
 
   const mobileLogout = document.getElementById('mobileMenuLogoutButton');
   if (mobileLogout) mobileLogout.addEventListener('click', logout);
@@ -749,6 +758,8 @@ function bindNavigation() {
       if (panel && toggle) {
         panel.classList.remove('open');
         toggle.classList.remove('open');
+        const scrim = document.getElementById('mobileNavScrim');
+        if (scrim) scrim.classList.remove('open');
         toggle.setAttribute('aria-expanded', 'false');
         panel.setAttribute('aria-hidden', 'true');
       }
