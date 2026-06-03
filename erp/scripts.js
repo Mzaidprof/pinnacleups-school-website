@@ -878,22 +878,13 @@ function renderParentChildCards() {
         <article class="child-profile-card">
           <div class="child-profile-top">
             ${renderStudentAvatar(student, 'child-avatar')}
-            <div>
+            <div class="child-preview-copy">
               <span class="section-kicker">Student Record</span>
               <button class="student-name-button large" type="button" data-view-student="${escapeHtml(student.StudentID)}">${escapeHtml(student.Name || 'Student')}</button>
               <p>Class ${escapeHtml(student.Grade || 'Not set')}</p>
             </div>
           </div>
-          <div class="child-detail-grid">
-            ${renderChildDetail('Student ID', student.StudentID)}
-            ${renderChildDetail('Status', student.Status || 'Not set', true)}
-            ${renderChildDetail('Gender', student.Gender)}
-            ${renderChildDetail('Date of Birth', student.DOB)}
-            ${renderChildDetail('Parent Name', student.ParentName)}
-            ${renderChildDetail('Parent Phone', student.ParentPhone)}
-            ${renderChildDetail('Admission Date', student.AdmissionDate)}
-            ${renderChildDetail('Address', student.Address)}
-          </div>
+          <button class="text-btn child-view-btn" type="button" data-view-student="${escapeHtml(student.StudentID)}">View profile</button>
         </article>
       `).join('')}
     </div>
@@ -946,7 +937,7 @@ function renderStudentRow(student) {
 }
 
 function bindStudentActions() {
-  document.querySelectorAll('.student-name-button[data-view-student]').forEach((button) => {
+  document.querySelectorAll('.student-name-button[data-view-student], .child-view-btn[data-view-student]').forEach((button) => {
     button.addEventListener('click', () => {
       const student = studentState.students.find((item) => item.StudentID === button.dataset.viewStudent);
       if (student) openStudentDetails(student);
