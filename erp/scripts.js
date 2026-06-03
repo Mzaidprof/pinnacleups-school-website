@@ -47,6 +47,16 @@ const icons = {
   Settings: 'SE'
 };
 
+let currentUser = null;
+let currentRoute = 'login';
+let studentState = {
+  filters: { search: '', grade: '', status: '' },
+  students: [],
+  permissions: { canAdd: false, canEdit: false, canDeactivate: false },
+  grades: [],
+  statuses: []
+};
+
 const mockUsers = [
   {
     id: 'MOCK-A001',
@@ -65,9 +75,39 @@ const mockUsers = [
   {
     id: 'MOCK-P001',
     name: 'Mr Khan',
+    phone: '9876543210',
     username: 'parent',
     password: 'parent123',
     role: 'Parent'
+  }
+];
+
+const mockStudents = [
+  {
+    StudentID: 'PUP001',
+    Name: 'Aarav Sharma',
+    Gender: 'M',
+    Grade: '3',
+    ParentName: 'Rajesh Sharma',
+    ParentPhone: '9876543210',
+    DOB: '2015-04-10',
+    Address: 'Yellareddypet',
+    AdmissionDate: '2026-06-01',
+    Username: 'aarav01',
+    Status: 'Active'
+  },
+  {
+    StudentID: 'PUP002',
+    Name: 'Sana Fatima',
+    Gender: 'F',
+    Grade: '4',
+    ParentName: 'Fatima',
+    ParentPhone: '9876543211',
+    DOB: '2016-02-18',
+    Address: 'Yellareddypet',
+    AdmissionDate: '2026-06-01',
+    Username: 'sana02',
+    Status: 'Active'
   }
 ];
 
@@ -89,6 +129,18 @@ const appsScriptApi = {
 
   logout(token) {
     return callAppsScript('logout', { token });
+  },
+
+  listStudents(filters) {
+    return callAppsScript('listStudents', { token: getToken(), filters });
+  },
+
+  saveStudent(student) {
+    return callAppsScript('saveStudent', { token: getToken(), student });
+  },
+
+  deactivateStudent(studentId) {
+    return callAppsScript('deactivateStudent', { token: getToken(), studentId });
   }
 };
 
@@ -119,9 +171,7 @@ const mockApi = {
           : { authenticated: false, route: config.routes.LOGIN };
       }
 
-      if (!session) {
-        return { authenticated: false, redirect: config.routes.LOGIN };
-      }
+      if (!session) return { authenticated: false, redirect: config.routes.LOGIN };
 
       const requiredRole = routeRole[cleanRoute];
       if (requiredRole !== session.user.role) {
@@ -134,12 +184,7 @@ const mockApi = {
         };
       }
 
-      return {
-        authenticated: true,
-        accessDenied: false,
-        user: session.user,
-        route: cleanRoute
-      };
+      return { authenticated: true, accessDenied: false, user: session.user, route: cleanRoute };
     });
   },
 
@@ -152,26 +197,80 @@ const mockApi = {
         item.password === cleanPassword
       );
 
-      if (!user) {
-        return { success: false, message: 'Invalid Username or Password' };
-      }
+      if (!user) return { success: false, message: 'Invalid Username or Password' };
 
       const token = createMockToken();
       const publicUser = toPublicUser(user);
       saveMockSession(token, publicUser);
-
-      return {
-        success: true,
-        token,
-        user: publicUser,
-        redirect: roleDashboard[publicUser.role]
-      };
+      return { success: true, token, user: publicUser, redirect: roleDashboard[publicUser.role] };
     });
   },
 
   logout(token) {
     return delay(() => {
       deleteMockSession(token);
+      return { success: true };
+    });
+  },
+
+  listStudents(filters) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session) throw new Error('Authentication required');
+
+      let students = [...mockStudents];
+      const search = String(filters.search || '').trim().toLowerCase();
+      const grade = String(filters.grade || '').trim();
+      const status = String(filters.status || '').trim();
+
+      if (session.user.role === 'Parent') {
+        students = students.filter((student) => student.ParentPhone === session.user.phone);
+      }
+
+      if (search) {
+        students = students.filter((student) =>
+          [student.StudentID, student.Name, student.ParentName, student.ParentPhone, student.Grade]
+            .some((value) => String(value || '').toLowerCase().includes(search))
+        );
+      }
+      if (grade) students = students.filter((student) => student.Grade === grade);
+      if (status) students = students.filter((student) => student.Status === status);
+
+      return {
+        success: true,
+        students,
+        permissions: getStudentPermissions(session.user.role),
+        grades: uniqueValues(mockStudents, 'Grade'),
+        statuses: uniqueValues(mockStudents, 'Status')
+      };
+    });
+  },
+
+  saveStudent(student) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== 'Admin') throw new Error('Access denied');
+
+      if (student.StudentID) {
+        const index = mockStudents.findIndex((item) => item.StudentID === student.StudentID);
+        if (index !== -1) mockStudents[index] = { ...mockStudents[index], ...student };
+      } else {
+        mockStudents.push({
+          ...student,
+          StudentID: `PUP${String(mockStudents.length + 1).padStart(3, '0')}`,
+          Status: student.Status || 'Active'
+        });
+      }
+      return { success: true };
+    });
+  },
+
+  deactivateStudent(studentId) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== 'Admin') throw new Error('Access denied');
+      const student = mockStudents.find((item) => item.StudentID === studentId);
+      if (student) student.Status = 'Inactive';
       return { success: true };
     });
   }
@@ -190,11 +289,15 @@ function getRoute() {
   return normalizeRoute(params.get('page'));
 }
 
+function getModule() {
+  const params = new URLSearchParams(window.location.search);
+  const moduleName = String(params.get('module') || 'dashboard').trim().toLowerCase();
+  return moduleName === 'students' ? 'students' : 'dashboard';
+}
+
 function normalizeRoute(route) {
   const value = String(route || config.routes.LOGIN).trim().toLowerCase();
-  return Object.prototype.hasOwnProperty.call(routeRole, value)
-    ? value
-    : config.routes.LOGIN;
+  return Object.prototype.hasOwnProperty.call(routeRole, value) ? value : config.routes.LOGIN;
 }
 
 function getToken() {
@@ -214,6 +317,11 @@ function routeTo(route) {
   window.location.href = route === 'login' ? base : `${base}?page=${route}`;
 }
 
+function routeToModule(moduleName) {
+  const base = window.location.href.split('?')[0];
+  window.location.href = `${base}?page=${currentRoute}&module=${moduleName}`;
+}
+
 function handleBootstrap(result) {
   if (result.redirect) {
     routeTo(result.redirect);
@@ -230,7 +338,9 @@ function handleBootstrap(result) {
     return;
   }
 
-  renderDashboard(result.user, result.route);
+  currentUser = result.user;
+  currentRoute = result.route;
+  renderDashboard(result.user, result.route, getModule());
 }
 
 function renderLoading() {
@@ -281,7 +391,6 @@ function renderLogin() {
 
 function submitLogin(event) {
   event.preventDefault();
-
   const form = event.currentTarget;
   const button = document.getElementById('loginButton');
   const message = document.getElementById('loginMessage');
@@ -297,7 +406,6 @@ function submitLogin(event) {
         message.textContent = result.message || 'Invalid Username or Password';
         return;
       }
-
       setToken(result.token);
       routeTo(result.redirect);
     })
@@ -309,10 +417,10 @@ function submitLogin(event) {
     });
 }
 
-function renderDashboard(user, route) {
+function renderDashboard(user, route, moduleName = 'dashboard') {
   app.innerHTML = `
     <div class="erp-layout">
-      ${renderSidebar(route, user)}
+      ${renderSidebar(route, user, moduleName)}
       <main class="main">
         <div class="topbar">
           <div class="mobile-brand top-brand">
@@ -322,38 +430,57 @@ function renderDashboard(user, route) {
           <div class="user-chip">${escapeHtml(user.username)} | ${escapeHtml(user.role)}</div>
           <button class="ghost-btn" id="logoutButton" type="button">Logout</button>
         </div>
-        <section class="dashboard-hero">
-          <div class="section-kicker">${escapeHtml(user.role)} Dashboard</div>
-          <h1>Welcome, ${escapeHtml(user.name || user.username)}</h1>
-          <p>This dashboard is protected by authentication and role-based access control. Module features will be added in later phases.</p>
-        </section>
-        <section class="info-grid">
-          <article class="info-card"><span>Logged-in username</span><strong>${escapeHtml(user.username)}</strong></article>
-          <article class="info-card"><span>Role</span><strong>${escapeHtml(user.role)}</strong></article>
-          <article class="info-card"><span>Access</span><strong>${escapeHtml(user.role)} dashboard only</strong></article>
-        </section>
-        <section class="notice-card">
-          <span>Phase 2 Scope</span>
-          <p>Authentication, session handling, dashboard routing, route protection, logout, and RBAC are active. Students, Attendance, Marks, Fees, Notifications, Reports, Academic Calendar, and Settings are reserved for future phases.</p>
-        </section>
+        <div id="moduleHost">${moduleName === 'students' ? renderStudentsShell() : renderDashboardHome(user)}</div>
       </main>
     </div>
   `;
 
   document.getElementById('logoutButton').addEventListener('click', logout);
+  bindNavigation();
+  if (moduleName === 'students') loadStudents();
 }
 
-function renderSidebar(route, user) {
+function renderDashboardHome(user) {
+  return `
+    <section class="dashboard-hero">
+      <div class="section-kicker">${escapeHtml(user.role)} Dashboard</div>
+      <h1>Welcome, ${escapeHtml(user.name || user.username)}</h1>
+      <p>This dashboard is protected by authentication and role-based access control. Student Management is now available from the sidebar.</p>
+    </section>
+    <section class="info-grid">
+      <article class="info-card"><span>Logged-in username</span><strong>${escapeHtml(user.username)}</strong></article>
+      <article class="info-card"><span>Role</span><strong>${escapeHtml(user.role)}</strong></article>
+      <article class="info-card"><span>Access</span><strong>${escapeHtml(user.role)} dashboard only</strong></article>
+    </section>
+    <section class="notice-card">
+      <span>Phase 3 Scope</span>
+      <p>Student Management is active. Attendance, Marks, Fees, Notifications, Reports, Academic Calendar, and Settings functionality remain reserved for future phases.</p>
+    </section>
+  `;
+}
+
+function renderSidebar(route, user, moduleName) {
   const dashboardLabel = `${capitalize(route)} Dashboard`;
   const visibleModules = config.futureModules.filter((item) =>
     item !== 'Settings' || user.role === 'Admin'
   );
-  const futureLinks = visibleModules.map((item) => `
-    <div class="nav-item disabled" title="Coming in a future phase">
-      <span class="nav-icon">${icons[item] || '--'}</span>
-      <span>${escapeHtml(item)}</span>
-    </div>
-  `).join('');
+  const futureLinks = visibleModules.map((item) => {
+    if (item === 'Students') {
+      return `
+        <button class="nav-item nav-action ${moduleName === 'students' ? 'active' : ''}" type="button" data-module="students">
+          <span class="nav-icon">${icons[item]}</span>
+          <span>${escapeHtml(item)}</span>
+        </button>
+      `;
+    }
+
+    return `
+      <div class="nav-item disabled" title="Coming in a future phase">
+        <span class="nav-icon">${icons[item] || '--'}</span>
+        <span>${escapeHtml(item)}</span>
+      </div>
+    `;
+  }).join('');
 
   return `
     <aside class="sidebar">
@@ -362,12 +489,280 @@ function renderSidebar(route, user) {
         <div class="brand-name">${config.schoolName}<span>${config.appName}</span></div>
       </div>
       <nav class="nav-list" aria-label="ERP navigation">
-        <div class="nav-item active"><span class="nav-icon">${icons.Dashboard}</span><span>${escapeHtml(dashboardLabel)}</span></div>
+        <button class="nav-item nav-action ${moduleName === 'dashboard' ? 'active' : ''}" type="button" data-module="dashboard">
+          <span class="nav-icon">${icons.Dashboard}</span>
+          <span>${escapeHtml(dashboardLabel)}</span>
+        </button>
         ${futureLinks}
       </nav>
       <div class="sidebar-foot">Built on the existing Pinnacle website theme and Google Sheets database.</div>
     </aside>
   `;
+}
+
+function bindNavigation() {
+  document.querySelectorAll('[data-module]').forEach((button) => {
+    button.addEventListener('click', () => routeToModule(button.dataset.module));
+  });
+}
+
+function renderStudentsShell() {
+  return `
+    <section class="module-header">
+      <div>
+        <div class="section-kicker">Student Management</div>
+        <h1>Students</h1>
+        <p>Search, filter, and manage student records using the existing Students sheet.</p>
+      </div>
+      <button class="primary-btn compact hidden" id="addStudentButton" type="button">Add Student</button>
+    </section>
+    <section class="toolbar">
+      <div class="field">
+        <label for="studentSearch">Search</label>
+        <input id="studentSearch" placeholder="Name, ID, parent, phone, class">
+      </div>
+      <div class="field">
+        <label for="gradeFilter">Class</label>
+        <select id="gradeFilter"></select>
+      </div>
+      <div class="field">
+        <label for="statusFilter">Status</label>
+        <select id="statusFilter"></select>
+      </div>
+    </section>
+    <section class="table-card" id="studentsHost">
+      <div class="user-chip">Loading students...</div>
+    </section>
+  `;
+}
+
+function loadStudents() {
+  const host = document.getElementById('studentsHost');
+  if (host) host.innerHTML = '<div class="user-chip">Loading students...</div>';
+
+  api.listStudents(studentState.filters)
+    .then((result) => {
+      if (!result.success) {
+        renderStudentError(result.message || 'Unable to load students');
+        return;
+      }
+
+      studentState = {
+        ...studentState,
+        students: result.students || [],
+        permissions: result.permissions || studentState.permissions,
+        grades: result.grades || [],
+        statuses: result.statuses || []
+      };
+      renderStudents();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderStudentError('Unable to load students');
+    });
+}
+
+function renderStudents() {
+  const addButton = document.getElementById('addStudentButton');
+  if (addButton && studentState.permissions.canAdd) {
+    addButton.classList.remove('hidden');
+    addButton.addEventListener('click', () => openStudentForm());
+  }
+
+  populateFilter('gradeFilter', 'All Classes', studentState.grades, studentState.filters.grade);
+  populateFilter('statusFilter', 'All Statuses', studentState.statuses, studentState.filters.status);
+
+  const search = document.getElementById('studentSearch');
+  search.value = studentState.filters.search;
+  search.addEventListener('input', debounce(() => {
+    studentState.filters.search = search.value;
+    loadStudents();
+  }, 280));
+
+  document.getElementById('gradeFilter').addEventListener('change', (event) => {
+    studentState.filters.grade = event.target.value;
+    loadStudents();
+  });
+  document.getElementById('statusFilter').addEventListener('change', (event) => {
+    studentState.filters.status = event.target.value;
+    loadStudents();
+  });
+
+  const rows = studentState.students.map((student) => renderStudentRow(student)).join('');
+  document.getElementById('studentsHost').innerHTML = `
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Class</th>
+            <th>Parent</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="7">No students found.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  bindStudentActions();
+}
+
+function renderStudentRow(student) {
+  const canEdit = studentState.permissions.canEdit;
+  const canDeactivate = studentState.permissions.canDeactivate && student.Status !== 'Inactive';
+
+  return `
+    <tr>
+      <td>${escapeHtml(student.StudentID)}</td>
+      <td>
+        <strong>${escapeHtml(student.Name)}</strong>
+        <small>${escapeHtml(student.Gender || 'Not set')} | DOB ${escapeHtml(student.DOB || 'Not set')}</small>
+      </td>
+      <td>${escapeHtml(student.Grade)}</td>
+      <td>${escapeHtml(student.ParentName)}</td>
+      <td>${escapeHtml(student.ParentPhone)}</td>
+      <td><span class="status-pill ${student.Status === 'Active' ? 'active' : 'inactive'}">${escapeHtml(student.Status || 'Not set')}</span></td>
+      <td class="actions">
+        ${canEdit ? `<button type="button" class="text-btn" data-edit="${escapeHtml(student.StudentID)}">Edit</button>` : '<span class="muted-text">View only</span>'}
+        ${canDeactivate ? `<button type="button" class="text-btn danger" data-deactivate="${escapeHtml(student.StudentID)}">Deactivate</button>` : ''}
+      </td>
+    </tr>
+  `;
+}
+
+function bindStudentActions() {
+  document.querySelectorAll('[data-edit]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const student = studentState.students.find((item) => item.StudentID === button.dataset.edit);
+      openStudentForm(student);
+    });
+  });
+
+  document.querySelectorAll('[data-deactivate]').forEach((button) => {
+    button.addEventListener('click', () => deactivateStudent(button.dataset.deactivate));
+  });
+}
+
+function openStudentForm(student = {}) {
+  const isEdit = Boolean(student.StudentID);
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <form class="student-form" id="studentForm">
+      <div class="form-head">
+        <div>
+          <div class="section-kicker">${isEdit ? 'Edit Student' : 'Add Student'}</div>
+          <h2>${isEdit ? escapeHtml(student.Name) : 'New Student'}</h2>
+        </div>
+        <button type="button" class="icon-btn" id="closeStudentForm">X</button>
+      </div>
+      <input type="hidden" name="StudentID" value="${escapeHtml(student.StudentID || '')}">
+      ${renderStudentField('Name', 'Name', student.Name, true)}
+      <div class="form-grid">
+        ${renderStudentField('Gender', 'Gender', student.Gender)}
+        ${renderStudentField('Grade', 'Class', student.Grade, true)}
+      </div>
+      <div class="form-grid">
+        ${renderStudentField('ParentName', 'Parent Name', student.ParentName, true)}
+        ${renderStudentField('ParentPhone', 'Parent Phone', student.ParentPhone, true)}
+      </div>
+      <div class="form-grid">
+        ${renderStudentField('DOB', 'Date of Birth', student.DOB, false, 'date')}
+        ${renderStudentField('AdmissionDate', 'Admission Date', student.AdmissionDate, false, 'date')}
+      </div>
+      ${renderStudentField('Address', 'Address', student.Address)}
+      <div class="form-grid">
+        ${renderStudentField('Username', 'Student Username', student.Username)}
+        ${renderStudentField('Password', 'Student Password', '', false, 'password')}
+      </div>
+      <div class="field">
+        <label for="studentStatus">Status</label>
+        <select id="studentStatus" name="Status">
+          <option value="Active" ${student.Status !== 'Inactive' ? 'selected' : ''}>Active</option>
+          <option value="Inactive" ${student.Status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+        </select>
+      </div>
+      <button class="primary-btn" type="submit">${isEdit ? 'Save Changes' : 'Add Student'}</button>
+      <div class="message" id="studentFormMessage"></div>
+    </form>
+  `;
+
+  document.body.appendChild(modal);
+  document.getElementById('closeStudentForm').addEventListener('click', () => modal.remove());
+  document.getElementById('studentForm').addEventListener('submit', (event) => submitStudentForm(event, modal));
+}
+
+function renderStudentField(name, label, value = '', required = false, type = 'text') {
+  return `
+    <div class="field">
+      <label for="student${name}">${label}</label>
+      <input id="student${name}" name="${name}" type="${type}" value="${escapeHtml(value || '')}" ${required ? 'required' : ''}>
+    </div>
+  `;
+}
+
+function submitStudentForm(event, modal) {
+  event.preventDefault();
+  const data = Object.fromEntries(new FormData(event.currentTarget).entries());
+  const message = document.getElementById('studentFormMessage');
+  message.textContent = '';
+
+  api.saveStudent(data)
+    .then((result) => {
+      if (!result.success) {
+        message.textContent = result.message || 'Unable to save student';
+        return;
+      }
+      modal.remove();
+      loadStudents();
+    })
+    .catch((error) => {
+      console.error(error);
+      message.textContent = 'Unable to save student';
+    });
+}
+
+function deactivateStudent(studentId) {
+  api.deactivateStudent(studentId)
+    .then((result) => {
+      if (!result.success) {
+        renderStudentError(result.message || 'Unable to deactivate student');
+        return;
+      }
+      loadStudents();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderStudentError('Unable to deactivate student');
+    });
+}
+
+function renderStudentError(message) {
+  const host = document.getElementById('studentsHost');
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
+}
+
+function populateFilter(id, label, values, selectedValue) {
+  const select = document.getElementById(id);
+  select.innerHTML = `<option value="">${label}</option>` + values.map((value) =>
+    `<option value="${escapeHtml(value)}" ${value === selectedValue ? 'selected' : ''}>${escapeHtml(value)}</option>`
+  ).join('');
+}
+
+function logout() {
+  renderLoading();
+  api.logout(getToken())
+    .then(() => {
+      clearToken();
+      routeTo('login');
+    })
+    .catch(() => {
+      clearToken();
+      routeTo('login');
+    });
 }
 
 function renderAccessDenied(user, expectedRoute) {
@@ -385,19 +780,6 @@ function renderAccessDenied(user, expectedRoute) {
   document.getElementById('accessLogout').addEventListener('click', logout);
 }
 
-function logout() {
-  renderLoading();
-  api.logout(getToken())
-    .then(() => {
-      clearToken();
-      routeTo('login');
-    })
-    .catch(() => {
-      clearToken();
-      routeTo('login');
-    });
-}
-
 function getMockSessions() {
   try {
     return JSON.parse(localStorage.getItem(mockSessionKey) || '{}');
@@ -413,7 +795,6 @@ function saveMockSessions(sessions) {
 
 function getMockSession(token) {
   if (!token) return null;
-
   const sessions = getMockSessions();
   const session = sessions[token];
   if (!session) return null;
@@ -423,7 +804,6 @@ function getMockSession(token) {
     saveMockSessions(sessions);
     return null;
   }
-
   return session;
 }
 
@@ -439,16 +819,13 @@ function saveMockSession(token, user) {
 
 function deleteMockSession(token) {
   if (!token) return;
-
   const sessions = getMockSessions();
   delete sessions[token];
   saveMockSessions(sessions);
 }
 
 function createMockToken() {
-  if (window.crypto && window.crypto.randomUUID) {
-    return window.crypto.randomUUID();
-  }
+  if (window.crypto && window.crypto.randomUUID) return window.crypto.randomUUID();
   return `mock-${Date.now()}-${Math.random().toString(16).slice(2)}`;
 }
 
@@ -456,15 +833,37 @@ function toPublicUser(user) {
   return {
     id: user.id,
     name: user.name,
+    phone: user.phone || '',
     username: user.username,
     role: user.role
   };
+}
+
+function getStudentPermissions(role) {
+  return {
+    canView: ['Admin', 'Teacher', 'Parent'].includes(role),
+    canAdd: role === 'Admin',
+    canEdit: role === 'Admin',
+    canDeactivate: role === 'Admin'
+  };
+}
+
+function uniqueValues(items, key) {
+  return Array.from(new Set(items.map((item) => item[key]).filter(Boolean))).sort();
 }
 
 function handleServerError(error) {
   console.error(error);
   clearToken();
   renderLogin();
+}
+
+function debounce(callback, wait) {
+  let timeoutId;
+  return (...args) => {
+    window.clearTimeout(timeoutId);
+    timeoutId = window.setTimeout(() => callback(...args), wait);
+  };
 }
 
 function capitalize(value) {
