@@ -512,6 +512,7 @@ function renderLogin() {
             <div class="brand-name">Pinnacle Upper Primary School <span>English Medium | CBSE</span></div>
           </div>
           <div class="brand-copy">
+            <div class="section-kicker">ERP Access</div>
             <h1>Secure school portal</h1>
             <p>A simple and secure way for the Pinnacle community to stay connected with school records, learning updates, and daily progress.</p>
           </div>
@@ -737,34 +738,37 @@ function bindNavigation() {
 }
 
 function renderStudentsShell(user = currentUser) {
+  const isParent = user && user.role === 'Parent';
   const title = user && user.role === 'Parent' ? 'My Child' : 'Students';
   const description = user && user.role === 'Parent'
-    ? 'View your child record linked through the parent account.'
+    ? 'A simple view of your child record and school details.'
     : 'Search, filter, and manage student records using the existing Students sheet.';
   return `
     <section class="module-header">
       <div>
-        <div class="section-kicker">Student Management</div>
+        <div class="section-kicker">${isParent ? 'Parent Portal' : 'Student Management'}</div>
         <h1>${escapeHtml(title)}</h1>
         <p>${escapeHtml(description)}</p>
       </div>
       <button class="primary-btn compact hidden" id="addStudentButton" type="button">Add Student</button>
     </section>
-    <section class="toolbar">
-      <div class="field">
-        <label for="studentSearch">Search</label>
-        <input id="studentSearch" placeholder="Name, ID, parent, phone, class">
-      </div>
-      <div class="field">
-        <label for="gradeFilter">Class</label>
-        <select id="gradeFilter"></select>
-      </div>
-      <div class="field">
-        <label for="statusFilter">Status</label>
-        <select id="statusFilter"></select>
-      </div>
-    </section>
-    <section class="table-card" id="studentsHost">
+    ${isParent ? '' : `
+      <section class="toolbar">
+        <div class="field">
+          <label for="studentSearch">Search</label>
+          <input id="studentSearch" placeholder="Name, ID, parent, phone, class">
+        </div>
+        <div class="field">
+          <label for="gradeFilter">Class</label>
+          <select id="gradeFilter"></select>
+        </div>
+        <div class="field">
+          <label for="statusFilter">Status</label>
+          <select id="statusFilter"></select>
+        </div>
+      </section>
+    `}
+    <section class="${isParent ? 'child-profile-wrap' : 'table-card'}" id="studentsHost">
       <div class="user-chip">Loading students...</div>
     </section>
   `;
@@ -774,7 +778,11 @@ function loadStudents() {
   const host = document.getElementById('studentsHost');
   if (host) host.innerHTML = '<div class="user-chip">Loading students...</div>';
 
-  api.listStudents(studentState.filters)
+  const filters = currentUser && currentUser.role === 'Parent'
+    ? { search: '', grade: '', status: '' }
+    : studentState.filters;
+
+  api.listStudents(filters)
     .then((result) => {
       if (!result.success) {
         renderStudentError(result.message || 'Unable to load students');
@@ -797,6 +805,11 @@ function loadStudents() {
 }
 
 function renderStudents() {
+  if (currentUser && currentUser.role === 'Parent') {
+    renderParentChildCards();
+    return;
+  }
+
   const addButton = document.getElementById('addStudentButton');
   if (addButton && studentState.permissions.canAdd) {
     addButton.classList.remove('hidden');
@@ -842,6 +855,69 @@ function renderStudents() {
     </div>
   `;
   bindStudentActions();
+}
+
+function renderParentChildCards() {
+  const host = document.getElementById('studentsHost');
+  if (!host) return;
+
+  if (!studentState.students.length) {
+    host.innerHTML = `
+      <div class="notice-card">
+        <span>My Child</span>
+        <p>No child record is linked to this parent account yet. Please contact the school office.</p>
+      </div>
+    `;
+    return;
+  }
+
+  host.innerHTML = `
+    <div class="child-profile-grid">
+      ${studentState.students.map((student) => `
+        <article class="child-profile-card">
+          <div class="child-profile-top">
+            <div class="child-avatar">${escapeHtml(getInitials(student.Name || 'Student'))}</div>
+            <div>
+              <span class="section-kicker">Student Record</span>
+              <h2>${escapeHtml(student.Name || 'Student')}</h2>
+              <p>Class ${escapeHtml(student.Grade || 'Not set')}</p>
+            </div>
+          </div>
+          <div class="child-detail-grid">
+            ${renderChildDetail('Student ID', student.StudentID)}
+            ${renderChildDetail('Status', student.Status || 'Not set', true)}
+            ${renderChildDetail('Gender', student.Gender)}
+            ${renderChildDetail('Date of Birth', student.DOB)}
+            ${renderChildDetail('Parent Name', student.ParentName)}
+            ${renderChildDetail('Parent Phone', student.ParentPhone)}
+            ${renderChildDetail('Admission Date', student.AdmissionDate)}
+            ${renderChildDetail('Address', student.Address)}
+          </div>
+        </article>
+      `).join('')}
+    </div>
+  `;
+}
+
+function renderChildDetail(label, value, isStatus = false) {
+  const cleanValue = value || 'Not set';
+  return `
+    <div class="child-detail">
+      <span>${escapeHtml(label)}</span>
+      ${isStatus
+        ? `<strong><span class="status-pill ${cleanValue === 'Active' ? 'active' : 'inactive'}">${escapeHtml(cleanValue)}</span></strong>`
+        : `<strong>${escapeHtml(cleanValue)}</strong>`}
+    </div>
+  `;
+}
+
+function getInitials(name) {
+  return String(name || '')
+    .trim()
+    .split(/\s+/)
+    .slice(0, 2)
+    .map((part) => part.charAt(0).toUpperCase())
+    .join('') || 'ST';
 }
 
 function renderStudentRow(student) {
