@@ -66,6 +66,9 @@ let teacherState = {
   grades: [],
   statuses: []
 };
+let settingsState = {
+  settings: null
+};
 
 const mockUsers = [
   {
@@ -188,6 +191,22 @@ const appsScriptApi = {
 
   deactivateTeacher(teacherId) {
     return callAppsScript('deactivateTeacher', { token: getToken(), teacherId });
+  },
+
+  getSettings() {
+    return callAppsScript('getSettings', { token: getToken() });
+  },
+
+  saveSettings(settings) {
+    return callAppsScript('saveSettings', { token: getToken(), settings });
+  },
+
+  addHoliday(holiday) {
+    return callAppsScript('addHoliday', { token: getToken(), holiday });
+  },
+
+  removeHoliday(holidayId) {
+    return callAppsScript('removeHoliday', { token: getToken(), holidayId });
   }
 };
 
@@ -379,6 +398,32 @@ const mockApi = {
       if (teacher) teacher.Status = 'Inactive';
       return { success: true };
     });
+  },
+
+  getSettings() {
+    return delay(() => ({
+      success: true,
+      settings: {
+        SchoolName: 'Pinnacle Upper Primary School',
+        CurrentAcademicYear: '2026-27',
+        NextAcademicYear: '2027-28',
+        AttendanceStartTime: '8:00',
+        AttendanceEndTime: '17:00',
+        SpecialHolidays: []
+      }
+    }));
+  },
+
+  saveSettings(settings) {
+    return delay(() => ({ success: true, settings }));
+  },
+
+  addHoliday(holiday) {
+    return delay(() => ({ success: true, holidays: [{ ...holiday, id: createMockToken() }] }));
+  },
+
+  removeHoliday() {
+    return delay(() => ({ success: true, holidays: [] }));
   }
 };
 
@@ -398,7 +443,7 @@ function getRoute() {
 function getModule() {
   const params = new URLSearchParams(window.location.search);
   const moduleName = String(params.get('module') || 'dashboard').trim().toLowerCase();
-  return ['students', 'teachers'].includes(moduleName) ? moduleName : 'dashboard';
+  return ['students', 'teachers', 'settings'].includes(moduleName) ? moduleName : 'dashboard';
 }
 
 function normalizeRoute(route) {
@@ -545,11 +590,13 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
   bindNavigation();
   if (moduleName === 'students') loadStudents();
   if (moduleName === 'teachers') loadTeachers();
+  if (moduleName === 'settings') loadSettings();
 }
 
 function renderModule(moduleName, user) {
   if (moduleName === 'students') return renderStudentsShell(user);
   if (moduleName === 'teachers' && user.role === 'Admin') return renderTeachersShell();
+  if (moduleName === 'settings' && user.role === 'Admin') return renderSettingsShell();
   return renderDashboardHome(user);
 }
 
@@ -577,7 +624,7 @@ function renderSidebar(route, user, moduleName) {
   const visibleModules = getRoleModules(user.role);
   const futureLinks = visibleModules.map((item) => {
     const moduleKey = item === 'My Child' ? 'students' : item.toLowerCase().replace(/\s+/g, '');
-    const isActiveModule = ['students', 'teachers'].includes(moduleKey);
+    const isActiveModule = ['students', 'teachers', 'settings'].includes(moduleKey);
     if (isActiveModule) {
       return `
         <button class="nav-item nav-action ${moduleName === moduleKey ? 'active' : ''}" type="button" data-module="${moduleKey}">
@@ -1142,6 +1189,204 @@ function renderTeacherError(message) {
   if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
 }
 
+function renderSettingsShell() {
+  return `
+    <section class="module-header">
+      <div>
+        <div class="section-kicker">Admin Settings</div>
+        <h1>Academic Setup</h1>
+        <p>Set academic year, attendance timings, and special holidays that should be remembered for future attendance and calendar use.</p>
+      </div>
+    </section>
+    <section class="settings-grid">
+      <form class="settings-card" id="academicSettingsForm">
+        <span>Academic Year</span>
+        <div class="form-grid">
+          ${renderSettingsField('SchoolName', 'School Name')}
+          ${renderSettingsField('CurrentAcademicYear', 'Current Academic Year')}
+        </div>
+        <div class="form-grid">
+          ${renderSettingsField('NextAcademicYear', 'Next Academic Year')}
+          ${renderSettingsField('AttendanceStartTime', 'Attendance Start Time', 'time')}
+          ${renderSettingsField('AttendanceEndTime', 'Attendance End Time', 'time')}
+        </div>
+        <button class="primary-btn compact" id="saveSettingsButton" type="submit">Save Settings</button>
+        <div class="message" id="settingsMessage"></div>
+      </form>
+
+      <section class="settings-card">
+        <span>Promotion Foundation</span>
+        <p>Promotion should be run only after attendance, marks, and fees for the year are closed. The system should create new-year records and preserve old records.</p>
+        <div class="promotion-flow">
+          <div>Nursery -> LKG</div>
+          <div>LKG -> UKG</div>
+          <div>UKG -> 1</div>
+          <div>7 -> Completed</div>
+        </div>
+      </section>
+    </section>
+
+    <section class="settings-card">
+      <div class="settings-card-head">
+        <div>
+          <span>Special Holidays</span>
+          <p>Add sudden holidays or continuous holiday ranges. These records will be used by future Attendance and Academic Calendar modules.</p>
+        </div>
+      </div>
+      <form class="holiday-form" id="holidayForm">
+        <div class="form-grid">
+          ${renderSettingsField('HolidayStartDate', 'Start Date', 'date')}
+          ${renderSettingsField('HolidayEndDate', 'End Date', 'date')}
+        </div>
+        ${renderSettingsField('HolidayRemark', 'Remark')}
+        <button class="primary-btn compact" id="addHolidayButton" type="submit">Add Holiday</button>
+        <div class="message" id="holidayMessage"></div>
+      </form>
+      <div id="holidaysHost" class="holiday-list">
+        <div class="user-chip">Loading holidays...</div>
+      </div>
+    </section>
+  `;
+}
+
+function renderSettingsField(name, label, type = 'text') {
+  return `
+    <div class="field">
+      <label for="${name}">${label}</label>
+      <input id="${name}" name="${name}" type="${type}">
+    </div>
+  `;
+}
+
+function loadSettings() {
+  api.getSettings()
+    .then((result) => {
+      if (!result.success) {
+        renderSettingsError(result.message || 'Unable to load settings');
+        return;
+      }
+      settingsState.settings = result.settings;
+      renderSettingsData();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderSettingsError('Unable to load settings');
+    });
+}
+
+function renderSettingsData() {
+  const settings = settingsState.settings || {};
+  ['SchoolName', 'CurrentAcademicYear', 'NextAcademicYear', 'AttendanceStartTime', 'AttendanceEndTime'].forEach((key) => {
+    const input = document.getElementById(key);
+    if (input) input.value = key.indexOf('Attendance') === 0 ? normalizeTimeValue(settings[key]) : settings[key] || '';
+  });
+
+  document.getElementById('academicSettingsForm').addEventListener('submit', submitSettingsForm);
+  document.getElementById('holidayForm').addEventListener('submit', submitHolidayForm);
+  renderHolidayList(settings.SpecialHolidays || []);
+}
+
+function submitSettingsForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = document.getElementById('saveSettingsButton');
+  const message = document.getElementById('settingsMessage');
+  const settings = Object.fromEntries(new FormData(form).entries());
+
+  button.disabled = true;
+  button.textContent = 'Saving...';
+  message.textContent = '';
+
+  api.saveSettings(settings)
+    .then((result) => {
+      button.disabled = false;
+      button.textContent = 'Save Settings';
+      if (!result.success) {
+        message.textContent = result.message || 'Unable to save settings';
+        return;
+      }
+      settingsState.settings = result.settings;
+      message.textContent = 'Settings saved.';
+    })
+    .catch((error) => {
+      console.error(error);
+      button.disabled = false;
+      button.textContent = 'Save Settings';
+      message.textContent = 'Unable to save settings';
+    });
+}
+
+function submitHolidayForm(event) {
+  event.preventDefault();
+  const button = document.getElementById('addHolidayButton');
+  const message = document.getElementById('holidayMessage');
+  const startDate = document.getElementById('HolidayStartDate').value;
+  const endDate = document.getElementById('HolidayEndDate').value || startDate;
+  const remark = document.getElementById('HolidayRemark').value;
+
+  button.disabled = true;
+  button.textContent = 'Adding...';
+  message.textContent = '';
+
+  api.addHoliday({ startDate, endDate, remark })
+    .then((result) => {
+      button.disabled = false;
+      button.textContent = 'Add Holiday';
+      if (!result.success) {
+        message.textContent = result.message || 'Unable to add holiday';
+        return;
+      }
+      document.getElementById('holidayForm').reset();
+      settingsState.settings.SpecialHolidays = result.holidays || [];
+      renderHolidayList(settingsState.settings.SpecialHolidays);
+    })
+    .catch((error) => {
+      console.error(error);
+      button.disabled = false;
+      button.textContent = 'Add Holiday';
+      message.textContent = 'Unable to add holiday';
+    });
+}
+
+function renderHolidayList(holidays) {
+  const host = document.getElementById('holidaysHost');
+  const rows = holidays.map((holiday) => `
+    <div class="holiday-item">
+      <div>
+        <strong>${escapeHtml(holiday.startDate)}${holiday.endDate && holiday.endDate !== holiday.startDate ? ` to ${escapeHtml(holiday.endDate)}` : ''}</strong>
+        <small>${escapeHtml(holiday.remark)}</small>
+      </div>
+      <button class="text-btn danger" type="button" data-remove-holiday="${escapeHtml(holiday.id)}">Remove</button>
+    </div>
+  `).join('');
+  host.innerHTML = rows || '<div class="muted-text">No special holidays added yet.</div>';
+
+  document.querySelectorAll('[data-remove-holiday]').forEach((button) => {
+    button.addEventListener('click', () => removeHoliday(button.dataset.removeHoliday));
+  });
+}
+
+function removeHoliday(holidayId) {
+  api.removeHoliday(holidayId)
+    .then((result) => {
+      if (!result.success) {
+        renderSettingsError(result.message || 'Unable to remove holiday');
+        return;
+      }
+      settingsState.settings.SpecialHolidays = result.holidays || [];
+      renderHolidayList(settingsState.settings.SpecialHolidays);
+    })
+    .catch((error) => {
+      console.error(error);
+      renderSettingsError('Unable to remove holiday');
+    });
+}
+
+function renderSettingsError(message) {
+  const host = document.getElementById('moduleHost');
+  if (host) host.innerHTML = `<section class="settings-card"><div class="message">${escapeHtml(message)}</div></section>`;
+}
+
 function logout() {
   renderLoading();
   api.logout(getToken())
@@ -1247,6 +1492,13 @@ function splitCsv(value) {
     .split(',')
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function normalizeTimeValue(value) {
+  const cleanValue = String(value || '').trim();
+  const match = cleanValue.match(/^(\d{1,2}):(\d{2})$/);
+  if (!match) return cleanValue;
+  return `${match[1].padStart(2, '0')}:${match[2]}`;
 }
 
 function uniqueGradeCsvValues(items) {
