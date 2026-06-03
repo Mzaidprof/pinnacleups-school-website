@@ -4,6 +4,7 @@ const API_MODE = 'apps-script';
 const config = {
   appName: 'Pinnacle ERP',
   schoolName: 'Pinnacle Upper Primary School',
+  mainWebsiteUrl: 'https://pinnacleups.com/',
   routes: {
     LOGIN: 'login',
     ADMIN: 'admin',
@@ -507,10 +508,10 @@ function renderLogin() {
     <main class="login-screen">
       <section class="login-panel">
         <div class="login-brand">
-          <div class="brand-mark">
+          <a class="brand-mark brand-link" href="${config.mainWebsiteUrl}" aria-label="Open Pinnacle Upper Primary School website">
             <img class="brand-logo" src="https://pinnacleups.com/Images/schoollogo.jpeg" alt="Pinnacle Upper Primary School logo">
             <div class="brand-name">Pinnacle Upper Primary School <span>English Medium | CBSE</span></div>
-          </div>
+          </a>
           <div class="brand-copy">
             <div class="section-kicker">ERP Access</div>
             <h1>Secure school portal</h1>
@@ -574,10 +575,10 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
       ${renderSidebar(route, user, moduleName)}
       <main class="main">
         <div class="topbar">
-          <div class="mobile-brand top-brand">
+          <a class="mobile-brand top-brand brand-link" href="${config.mainWebsiteUrl}" aria-label="Open Pinnacle Upper Primary School website">
             <img class="brand-logo" src="https://pinnacleups.com/Images/schoollogo.jpeg" alt="">
             <div class="brand-name">${config.schoolName}<span>${config.appName}</span></div>
-          </div>
+          </a>
           <button class="mobile-nav-toggle" id="mobileNavToggle" type="button" aria-expanded="false" aria-controls="mobileNavPanel">
             <span></span><span></span><span></span>
             <strong>Menu</strong>
@@ -692,10 +693,10 @@ function renderSidebar(route, user, moduleName) {
 
   return `
     <aside class="sidebar">
-      <div class="top-brand">
+      <a class="top-brand brand-link" href="${config.mainWebsiteUrl}" aria-label="Open Pinnacle Upper Primary School website">
         <img class="brand-logo" src="https://pinnacleups.com/Images/schoollogo.jpeg" alt="Pinnacle Upper Primary School logo">
         <div class="brand-name">${config.schoolName}<span>${config.appName}</span></div>
-      </div>
+      </a>
       <nav class="nav-list" aria-label="ERP navigation">
         <button class="nav-item nav-action ${moduleName === 'dashboard' ? 'active' : ''}" type="button" data-module="dashboard">
           <span class="nav-icon">${icons.Dashboard}</span>
@@ -876,10 +877,10 @@ function renderParentChildCards() {
       ${studentState.students.map((student) => `
         <article class="child-profile-card">
           <div class="child-profile-top">
-            <div class="child-avatar">${escapeHtml(getInitials(student.Name || 'Student'))}</div>
+            ${renderStudentAvatar(student, 'child-avatar')}
             <div>
               <span class="section-kicker">Student Record</span>
-              <h2>${escapeHtml(student.Name || 'Student')}</h2>
+              <button class="student-name-button large" type="button" data-view-student="${escapeHtml(student.StudentID)}">${escapeHtml(student.Name || 'Student')}</button>
               <p>Class ${escapeHtml(student.Grade || 'Not set')}</p>
             </div>
           </div>
@@ -897,6 +898,7 @@ function renderParentChildCards() {
       `).join('')}
     </div>
   `;
+  bindStudentActions();
 }
 
 function renderChildDetail(label, value, isStatus = false) {
@@ -928,7 +930,7 @@ function renderStudentRow(student) {
     <tr>
       <td>${escapeHtml(student.StudentID)}</td>
       <td>
-        <strong>${escapeHtml(student.Name)}</strong>
+        <button class="student-name-button" type="button" data-view-student="${escapeHtml(student.StudentID)}">${escapeHtml(student.Name)}</button>
         <small>${escapeHtml(student.Gender || 'Not set')} | DOB ${escapeHtml(student.DOB || 'Not set')}</small>
       </td>
       <td>${escapeHtml(student.Grade)}</td>
@@ -944,6 +946,13 @@ function renderStudentRow(student) {
 }
 
 function bindStudentActions() {
+  document.querySelectorAll('.student-name-button[data-view-student]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const student = studentState.students.find((item) => item.StudentID === button.dataset.viewStudent);
+      if (student) openStudentDetails(student);
+    });
+  });
+
   document.querySelectorAll('[data-edit]').forEach((button) => {
     button.addEventListener('click', () => {
       const student = studentState.students.find((item) => item.StudentID === button.dataset.edit);
@@ -954,6 +963,56 @@ function bindStudentActions() {
   document.querySelectorAll('[data-deactivate]').forEach((button) => {
     button.addEventListener('click', () => deactivateStudent(button.dataset.deactivate));
   });
+}
+
+function openStudentDetails(student) {
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <section class="student-detail-modal" role="dialog" aria-modal="true" aria-labelledby="studentDetailTitle">
+      <div class="student-detail-hero">
+        ${renderStudentAvatar(student, 'student-detail-photo')}
+        <div>
+          <span class="section-kicker">Student Profile</span>
+          <h2 id="studentDetailTitle">${escapeHtml(student.Name || 'Student')}</h2>
+          <p>Class ${escapeHtml(student.Grade || 'Not set')} | ${escapeHtml(student.StudentID || 'No ID')}</p>
+        </div>
+        <button type="button" class="icon-btn detail-close" id="closeStudentDetails">X</button>
+      </div>
+      <div class="child-detail-grid">
+        ${renderChildDetail('Student ID', student.StudentID)}
+        ${renderChildDetail('Status', student.Status || 'Not set', true)}
+        ${renderChildDetail('Class', student.Grade)}
+        ${renderChildDetail('Gender', student.Gender)}
+        ${renderChildDetail('Date of Birth', student.DOB)}
+        ${renderChildDetail('Admission Date', student.AdmissionDate)}
+        ${renderChildDetail('Parent Name', student.ParentName)}
+        ${renderChildDetail('Parent Phone', student.ParentPhone)}
+        ${renderChildDetail('Address', student.Address)}
+      </div>
+    </section>
+  `;
+
+  document.body.appendChild(modal);
+  document.getElementById('closeStudentDetails').addEventListener('click', () => modal.remove());
+  modal.addEventListener('click', (event) => {
+    if (event.target === modal) modal.remove();
+  });
+}
+
+function renderStudentAvatar(student, className) {
+  const photoUrl = getStudentPhotoUrl(student);
+  if (photoUrl) {
+    return `<div class="${className} has-photo"><img src="${escapeHtml(photoUrl)}" alt="${escapeHtml(student.Name || 'Student')} photo"></div>`;
+  }
+  return `<div class="${className}">${escapeHtml(getInitials(student.Name || 'Student'))}</div>`;
+}
+
+function getStudentPhotoUrl(student) {
+  const value = String(student.PhotoURL || student.PhotoUrl || student.Photo || '').trim();
+  if (!value) return '';
+  if (/^(https?:\/\/|\/)/i.test(value)) return value;
+  return '';
 }
 
 function openStudentForm(student = {}) {
