@@ -12,6 +12,7 @@ const config = {
   },
   futureModules: [
     'Students',
+    'Teachers',
     'Attendance',
     'Marks',
     'Fees',
@@ -38,6 +39,8 @@ const roleDashboard = {
 const icons = {
   Dashboard: 'DB',
   Students: 'ST',
+  Teachers: 'TE',
+  'My Child': 'CH',
   Attendance: 'AT',
   Marks: 'MK',
   Fees: 'FE',
@@ -52,6 +55,13 @@ let currentRoute = 'login';
 let studentState = {
   filters: { search: '', grade: '', status: '' },
   students: [],
+  permissions: { canAdd: false, canEdit: false, canDeactivate: false },
+  grades: [],
+  statuses: []
+};
+let teacherState = {
+  filters: { search: '', grade: '', status: '' },
+  teachers: [],
   permissions: { canAdd: false, canEdit: false, canDeactivate: false },
   grades: [],
   statuses: []
@@ -111,6 +121,31 @@ const mockStudents = [
   }
 ];
 
+const mockTeachers = [
+  {
+    TeacherID: 'T001',
+    FullName: 'Priya Menon',
+    Subject: 'Mathematics',
+    Grade: '5',
+    Phone: '9876500001',
+    Username: 'priya',
+    Role: 'Teacher',
+    Status: 'Active',
+    JoiningDate: '2026-06-10'
+  },
+  {
+    TeacherID: 'T002',
+    FullName: 'Arjun Rao',
+    Subject: 'Science',
+    Grade: '4',
+    Phone: '9876500002',
+    Username: 'arjun_sci',
+    Role: 'Teacher',
+    Status: 'Active',
+    JoiningDate: '2026-07-01'
+  }
+];
+
 document.addEventListener('DOMContentLoaded', () => {
   renderLoading();
   api.getRouteBootstrap(getToken(), getRoute())
@@ -141,6 +176,18 @@ const appsScriptApi = {
 
   deactivateStudent(studentId) {
     return callAppsScript('deactivateStudent', { token: getToken(), studentId });
+  },
+
+  listTeachers(filters) {
+    return callAppsScript('listTeachers', { token: getToken(), filters });
+  },
+
+  saveTeacher(teacher) {
+    return callAppsScript('saveTeacher', { token: getToken(), teacher });
+  },
+
+  deactivateTeacher(teacherId) {
+    return callAppsScript('deactivateTeacher', { token: getToken(), teacherId });
   }
 };
 
@@ -273,6 +320,65 @@ const mockApi = {
       if (student) student.Status = 'Inactive';
       return { success: true };
     });
+  },
+
+  listTeachers(filters) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== 'Admin') throw new Error('Access denied');
+
+      let teachers = [...mockTeachers];
+      const search = String(filters.search || '').trim().toLowerCase();
+      const grade = String(filters.grade || '').trim();
+      const status = String(filters.status || '').trim();
+
+      if (search) {
+        teachers = teachers.filter((teacher) =>
+          [teacher.TeacherID, teacher.FullName, teacher.Subject, teacher.Grade, teacher.Phone, teacher.Username]
+            .some((value) => String(value || '').toLowerCase().includes(search))
+        );
+      }
+      if (grade) teachers = teachers.filter((teacher) => splitCsv(teacher.Grade).includes(grade));
+      if (status) teachers = teachers.filter((teacher) => teacher.Status === status);
+
+      return {
+        success: true,
+        teachers,
+        permissions: { canAdd: true, canEdit: true, canDeactivate: true },
+        grades: uniqueGradeCsvValues(mockTeachers),
+        statuses: uniqueValues(mockTeachers, 'Status')
+      };
+    });
+  },
+
+  saveTeacher(teacher) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== 'Admin') throw new Error('Access denied');
+
+      if (teacher.TeacherID) {
+        const index = mockTeachers.findIndex((item) => item.TeacherID === teacher.TeacherID);
+        if (index !== -1) mockTeachers[index] = { ...mockTeachers[index], ...teacher };
+      } else {
+        mockTeachers.push({
+          ...teacher,
+          TeacherID: `T${String(mockTeachers.length + 1).padStart(3, '0')}`,
+          Role: 'Teacher',
+          Status: teacher.Status || 'Active'
+        });
+      }
+      return { success: true };
+    });
+  },
+
+  deactivateTeacher(teacherId) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== 'Admin') throw new Error('Access denied');
+      const teacher = mockTeachers.find((item) => item.TeacherID === teacherId);
+      if (teacher) teacher.Status = 'Inactive';
+      return { success: true };
+    });
   }
 };
 
@@ -292,7 +398,7 @@ function getRoute() {
 function getModule() {
   const params = new URLSearchParams(window.location.search);
   const moduleName = String(params.get('module') || 'dashboard').trim().toLowerCase();
-  return moduleName === 'students' ? 'students' : 'dashboard';
+  return ['students', 'teachers'].includes(moduleName) ? moduleName : 'dashboard';
 }
 
 function normalizeRoute(route) {
@@ -430,7 +536,7 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
           <div class="user-chip">${escapeHtml(user.username)} | ${escapeHtml(user.role)}</div>
           <button class="ghost-btn" id="logoutButton" type="button">Logout</button>
         </div>
-        <div id="moduleHost">${moduleName === 'students' ? renderStudentsShell() : renderDashboardHome(user)}</div>
+        <div id="moduleHost">${renderModule(moduleName, user)}</div>
       </main>
     </div>
   `;
@@ -438,6 +544,13 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
   document.getElementById('logoutButton').addEventListener('click', logout);
   bindNavigation();
   if (moduleName === 'students') loadStudents();
+  if (moduleName === 'teachers') loadTeachers();
+}
+
+function renderModule(moduleName, user) {
+  if (moduleName === 'students') return renderStudentsShell(user);
+  if (moduleName === 'teachers' && user.role === 'Admin') return renderTeachersShell();
+  return renderDashboardHome(user);
 }
 
 function renderDashboardHome(user) {
@@ -461,14 +574,14 @@ function renderDashboardHome(user) {
 
 function renderSidebar(route, user, moduleName) {
   const dashboardLabel = `${capitalize(route)} Dashboard`;
-  const visibleModules = config.futureModules.filter((item) =>
-    item !== 'Settings' || user.role === 'Admin'
-  );
+  const visibleModules = getRoleModules(user.role);
   const futureLinks = visibleModules.map((item) => {
-    if (item === 'Students') {
+    const moduleKey = item === 'My Child' ? 'students' : item.toLowerCase().replace(/\s+/g, '');
+    const isActiveModule = ['students', 'teachers'].includes(moduleKey);
+    if (isActiveModule) {
       return `
-        <button class="nav-item nav-action ${moduleName === 'students' ? 'active' : ''}" type="button" data-module="students">
-          <span class="nav-icon">${icons[item]}</span>
+        <button class="nav-item nav-action ${moduleName === moduleKey ? 'active' : ''}" type="button" data-module="${moduleKey}">
+          <span class="nav-icon">${icons[item] || icons.Students}</span>
           <span>${escapeHtml(item)}</span>
         </button>
       `;
@@ -500,19 +613,36 @@ function renderSidebar(route, user, moduleName) {
   `;
 }
 
+function getRoleModules(role) {
+  if (role === 'Admin') {
+    return ['Students', 'Teachers', 'Attendance', 'Marks', 'Fees', 'Notifications', 'Reports', 'Academic Calendar', 'Settings'];
+  }
+  if (role === 'Teacher') {
+    return ['Students', 'Attendance', 'Marks', 'Notifications', 'Reports', 'Academic Calendar'];
+  }
+  if (role === 'Parent') {
+    return ['My Child', 'Attendance', 'Marks', 'Fees', 'Notifications', 'Academic Calendar'];
+  }
+  return [];
+}
+
 function bindNavigation() {
   document.querySelectorAll('[data-module]').forEach((button) => {
     button.addEventListener('click', () => routeToModule(button.dataset.module));
   });
 }
 
-function renderStudentsShell() {
+function renderStudentsShell(user = currentUser) {
+  const title = user && user.role === 'Parent' ? 'My Child' : 'Students';
+  const description = user && user.role === 'Parent'
+    ? 'View your child record linked through the parent account.'
+    : 'Search, filter, and manage student records using the existing Students sheet.';
   return `
     <section class="module-header">
       <div>
         <div class="section-kicker">Student Management</div>
-        <h1>Students</h1>
-        <p>Search, filter, and manage student records using the existing Students sheet.</p>
+        <h1>${escapeHtml(title)}</h1>
+        <p>${escapeHtml(description)}</p>
       </div>
       <button class="primary-btn compact hidden" id="addStudentButton" type="button">Add Student</button>
     </section>
@@ -726,7 +856,7 @@ function submitStudentForm(modal) {
         return;
       }
       modal.remove();
-      keepStudentsModuleInUrl();
+      keepModuleInUrl('students');
       loadStudents();
     })
     .catch((error) => {
@@ -737,9 +867,9 @@ function submitStudentForm(modal) {
     });
 }
 
-function keepStudentsModuleInUrl() {
+function keepModuleInUrl(moduleName) {
   const base = window.location.href.split('?')[0];
-  const desiredUrl = `${base}?page=${currentRoute}&module=students`;
+  const desiredUrl = `${base}?page=${currentRoute}&module=${moduleName}`;
   if (window.location.href !== desiredUrl) {
     window.history.replaceState(null, '', desiredUrl);
   }
@@ -770,6 +900,246 @@ function populateFilter(id, label, values, selectedValue) {
   select.innerHTML = `<option value="">${label}</option>` + values.map((value) =>
     `<option value="${escapeHtml(value)}" ${value === selectedValue ? 'selected' : ''}>${escapeHtml(value)}</option>`
   ).join('');
+}
+
+function renderTeachersShell() {
+  return `
+    <section class="module-header">
+      <div>
+        <div class="section-kicker">Teacher Management</div>
+        <h1>Teachers</h1>
+        <p>Manage teacher records and grade assignments. Use comma-separated grades such as 3,4,5 for multiple classes.</p>
+      </div>
+      <button class="primary-btn compact" id="addTeacherButton" type="button">Add Teacher</button>
+    </section>
+    <section class="toolbar">
+      <div class="field">
+        <label for="teacherSearch">Search</label>
+        <input id="teacherSearch" placeholder="Name, ID, subject, grade, phone">
+      </div>
+      <div class="field">
+        <label for="teacherGradeFilter">Class</label>
+        <select id="teacherGradeFilter"></select>
+      </div>
+      <div class="field">
+        <label for="teacherStatusFilter">Status</label>
+        <select id="teacherStatusFilter"></select>
+      </div>
+    </section>
+    <section class="table-card" id="teachersHost">
+      <div class="user-chip">Loading teachers...</div>
+    </section>
+  `;
+}
+
+function loadTeachers() {
+  const host = document.getElementById('teachersHost');
+  if (host) host.innerHTML = '<div class="user-chip">Loading teachers...</div>';
+
+  api.listTeachers(teacherState.filters)
+    .then((result) => {
+      if (!result.success) {
+        renderTeacherError(result.message || 'Unable to load teachers');
+        return;
+      }
+
+      teacherState = {
+        ...teacherState,
+        teachers: result.teachers || [],
+        permissions: result.permissions || teacherState.permissions,
+        grades: result.grades || [],
+        statuses: result.statuses || []
+      };
+      renderTeachers();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderTeacherError('Unable to load teachers');
+    });
+}
+
+function renderTeachers() {
+  document.getElementById('addTeacherButton').addEventListener('click', () => openTeacherForm());
+  populateFilter('teacherGradeFilter', 'All Classes', teacherState.grades, teacherState.filters.grade);
+  populateFilter('teacherStatusFilter', 'All Statuses', teacherState.statuses, teacherState.filters.status);
+
+  const search = document.getElementById('teacherSearch');
+  search.value = teacherState.filters.search;
+  search.addEventListener('input', debounce(() => {
+    teacherState.filters.search = search.value;
+    loadTeachers();
+  }, 280));
+
+  document.getElementById('teacherGradeFilter').addEventListener('change', (event) => {
+    teacherState.filters.grade = event.target.value;
+    loadTeachers();
+  });
+  document.getElementById('teacherStatusFilter').addEventListener('change', (event) => {
+    teacherState.filters.status = event.target.value;
+    loadTeachers();
+  });
+
+  const rows = teacherState.teachers.map((teacher) => renderTeacherRow(teacher)).join('');
+  document.getElementById('teachersHost').innerHTML = `
+    <div class="table-scroll">
+      <table>
+        <thead>
+          <tr>
+            <th>ID</th>
+            <th>Name</th>
+            <th>Subject</th>
+            <th>Classes</th>
+            <th>Phone</th>
+            <th>Status</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody>${rows || '<tr><td colspan="7">No teachers found.</td></tr>'}</tbody>
+      </table>
+    </div>
+  `;
+  bindTeacherActions();
+}
+
+function renderTeacherRow(teacher) {
+  const canDeactivate = teacher.Status !== 'Inactive';
+  return `
+    <tr>
+      <td>${escapeHtml(teacher.TeacherID)}</td>
+      <td>
+        <strong>${escapeHtml(teacher.FullName)}</strong>
+        <small>${escapeHtml(teacher.Username || 'No username')} | Joined ${escapeHtml(teacher.JoiningDate || 'Not set')}</small>
+      </td>
+      <td>${escapeHtml(teacher.Subject)}</td>
+      <td>${escapeHtml(teacher.Grade)}</td>
+      <td>${escapeHtml(teacher.Phone)}</td>
+      <td><span class="status-pill ${teacher.Status === 'Active' ? 'active' : 'inactive'}">${escapeHtml(teacher.Status || 'Not set')}</span></td>
+      <td class="actions">
+        <button type="button" class="text-btn" data-edit-teacher="${escapeHtml(teacher.TeacherID)}">Edit</button>
+        ${canDeactivate ? `<button type="button" class="text-btn danger" data-deactivate-teacher="${escapeHtml(teacher.TeacherID)}">Deactivate</button>` : ''}
+      </td>
+    </tr>
+  `;
+}
+
+function bindTeacherActions() {
+  document.querySelectorAll('[data-edit-teacher]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const teacher = teacherState.teachers.find((item) => item.TeacherID === button.dataset.editTeacher);
+      openTeacherForm(teacher);
+    });
+  });
+
+  document.querySelectorAll('[data-deactivate-teacher]').forEach((button) => {
+    button.addEventListener('click', () => deactivateTeacher(button.dataset.deactivateTeacher));
+  });
+}
+
+function openTeacherForm(teacher = {}) {
+  const isEdit = Boolean(teacher.TeacherID);
+  const modal = document.createElement('div');
+  modal.className = 'modal-backdrop';
+  modal.innerHTML = `
+    <form class="student-form" id="teacherForm" action="javascript:void(0)" novalidate>
+      <div class="form-head">
+        <div>
+          <div class="section-kicker">${isEdit ? 'Edit Teacher' : 'Add Teacher'}</div>
+          <h2>${isEdit ? escapeHtml(teacher.FullName) : 'New Teacher'}</h2>
+        </div>
+        <button type="button" class="icon-btn" id="closeTeacherForm">X</button>
+      </div>
+      <input type="hidden" name="TeacherID" value="${escapeHtml(teacher.TeacherID || '')}">
+      ${renderTeacherField('FullName', 'Full Name', teacher.FullName, true)}
+      <div class="form-grid">
+        ${renderTeacherField('Subject', 'Subject', teacher.Subject, true)}
+        ${renderTeacherField('Grade', 'Assigned Classes', teacher.Grade, true)}
+      </div>
+      <div class="form-grid">
+        ${renderTeacherField('Phone', 'Phone', teacher.Phone)}
+        ${renderTeacherField('JoiningDate', 'Joining Date', teacher.JoiningDate, false, 'date')}
+      </div>
+      <div class="form-grid">
+        ${renderTeacherField('Username', 'Username', teacher.Username, true)}
+        ${renderTeacherField('Password', 'Password', '', false, 'password')}
+      </div>
+      <input type="hidden" name="Role" value="Teacher">
+      <div class="field">
+        <label for="teacherStatus">Status</label>
+        <select id="teacherStatus" name="Status">
+          <option value="Active" ${teacher.Status !== 'Inactive' ? 'selected' : ''}>Active</option>
+          <option value="Inactive" ${teacher.Status === 'Inactive' ? 'selected' : ''}>Inactive</option>
+        </select>
+      </div>
+      <button class="primary-btn" id="saveTeacherButton" type="button">${isEdit ? 'Save Changes' : 'Add Teacher'}</button>
+      <div class="message" id="teacherFormMessage"></div>
+    </form>
+  `;
+
+  document.body.appendChild(modal);
+  document.getElementById('closeTeacherForm').addEventListener('click', () => modal.remove());
+  document.getElementById('teacherForm').addEventListener('submit', (event) => event.preventDefault());
+  document.getElementById('saveTeacherButton').addEventListener('click', () => submitTeacherForm(modal));
+}
+
+function renderTeacherField(name, label, value = '', required = false, type = 'text') {
+  return `
+    <div class="field">
+      <label for="teacher${name}">${label}</label>
+      <input id="teacher${name}" name="${name}" type="${type}" value="${escapeHtml(value || '')}" ${required ? 'required' : ''}>
+    </div>
+  `;
+}
+
+function submitTeacherForm(modal) {
+  const form = document.getElementById('teacherForm');
+  const saveButton = document.getElementById('saveTeacherButton');
+  const message = document.getElementById('teacherFormMessage');
+  const data = Object.fromEntries(new FormData(form).entries());
+
+  if (!form.reportValidity()) return;
+
+  message.textContent = '';
+  saveButton.disabled = true;
+  saveButton.textContent = 'Saving...';
+
+  api.saveTeacher(data)
+    .then((result) => {
+      if (!result.success) {
+        message.textContent = result.message || 'Unable to save teacher';
+        saveButton.disabled = false;
+        saveButton.textContent = data.TeacherID ? 'Save Changes' : 'Add Teacher';
+        return;
+      }
+      modal.remove();
+      keepModuleInUrl('teachers');
+      loadTeachers();
+    })
+    .catch((error) => {
+      console.error(error);
+      message.textContent = 'Unable to save teacher';
+      saveButton.disabled = false;
+      saveButton.textContent = data.TeacherID ? 'Save Changes' : 'Add Teacher';
+    });
+}
+
+function deactivateTeacher(teacherId) {
+  api.deactivateTeacher(teacherId)
+    .then((result) => {
+      if (!result.success) {
+        renderTeacherError(result.message || 'Unable to deactivate teacher');
+        return;
+      }
+      loadTeachers();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderTeacherError('Unable to deactivate teacher');
+    });
+}
+
+function renderTeacherError(message) {
+  const host = document.getElementById('teachersHost');
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
 }
 
 function logout() {
@@ -870,6 +1240,19 @@ function getStudentPermissions(role) {
 
 function uniqueValues(items, key) {
   return Array.from(new Set(items.map((item) => item[key]).filter(Boolean))).sort();
+}
+
+function splitCsv(value) {
+  return String(value || '')
+    .split(',')
+    .map((item) => item.trim())
+    .filter(Boolean);
+}
+
+function uniqueGradeCsvValues(items) {
+  const grades = [];
+  items.forEach((item) => splitCsv(item.Grade).forEach((grade) => grades.push(grade)));
+  return Array.from(new Set(grades)).sort();
 }
 
 function handleServerError(error) {
