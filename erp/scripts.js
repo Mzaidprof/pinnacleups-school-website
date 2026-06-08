@@ -70,6 +70,14 @@ let teacherState = {
 let settingsState = {
   settings: null
 };
+let attendanceState = {
+  filters: { date: '', grade: '', academicYear: '' },
+  attendance: [],
+  grades: [],
+  settings: null,
+  holiday: null,
+  permissions: { canView: false, canMark: false }
+};
 
 const mockUsers = [
   {
@@ -180,6 +188,14 @@ const appsScriptApi = {
 
   deactivateStudent(studentId) {
     return callAppsScript('deactivateStudent', { token: getToken(), studentId });
+  },
+
+  listAttendance(filters) {
+    return callAppsScript('listAttendance', { token: getToken(), filters });
+  },
+
+  saveAttendance(attendance) {
+    return callAppsScript('saveAttendance', { token: getToken(), attendance });
   },
 
   listTeachers(filters) {
@@ -332,6 +348,37 @@ const mockApi = {
     });
   },
 
+  listAttendance(filters) {
+    return delay(() => ({
+      success: true,
+      date: filters.date || new Date().toISOString().slice(0, 10),
+      academicYear: '2026-27',
+      settings: {
+        CurrentAcademicYear: '2026-27',
+        MorningAttendanceStartTime: '08:30',
+        MorningAttendanceEndTime: '10:00',
+        AfternoonAttendanceStartTime: '13:30',
+        AfternoonAttendanceEndTime: '15:00',
+        SpecialHolidays: []
+      },
+      holiday: null,
+      attendance: mockStudents.map((student) => ({
+        ...student,
+        MorningStatus: '',
+        AfternoonStatus: '',
+        Status: '',
+        Remarks: '',
+        ParentMessage: ''
+      })),
+      grades: uniqueValues(mockStudents, 'Grade'),
+      permissions: { canView: true, canMark: getMockSession(getToken())?.user.role !== 'Parent' }
+    }));
+  },
+
+  saveAttendance(attendance) {
+    return delay(() => ({ success: true, ...attendance }));
+  },
+
   deactivateStudent(studentId) {
     return delay(() => {
       const session = getMockSession(getToken());
@@ -408,8 +455,10 @@ const mockApi = {
         SchoolName: 'Pinnacle Upper Primary School',
         CurrentAcademicYear: '2026-27',
         NextAcademicYear: '2027-28',
-        AttendanceStartTime: '8:00',
-        AttendanceEndTime: '17:00',
+        MorningAttendanceStartTime: '08:30',
+        MorningAttendanceEndTime: '10:00',
+        AfternoonAttendanceStartTime: '13:30',
+        AfternoonAttendanceEndTime: '15:00',
         SpecialHolidays: []
       }
     }));
@@ -596,6 +645,7 @@ function renderDashboard(user, route, moduleName = 'dashboard') {
   bindMobileNav();
   bindNavigation();
   if (moduleName === 'students') loadStudents();
+  if (moduleName === 'attendance') loadAttendance();
   if (moduleName === 'teachers') loadTeachers();
   if (moduleName === 'settings') loadSettings();
 }
@@ -615,7 +665,7 @@ function renderMobileNav(route, user, moduleName) {
     <div class="mobile-nav-panel" id="mobileNavPanel" aria-hidden="true">
       <div class="mobile-nav-grid">
         ${moduleItems.map((item) => {
-          const activeModules = ['dashboard', 'students', 'teachers', 'settings'];
+          const activeModules = ['dashboard', 'students', 'attendance', 'teachers', 'settings'];
           const isEnabled = activeModules.includes(item.module);
           return isEnabled
             ? `<button class="mobile-nav-item ${moduleName === item.module ? 'active' : ''}" type="button" data-module="${item.module}"><span>${escapeHtml(item.icon)}</span>${escapeHtml(item.label)}</button>`
@@ -659,6 +709,7 @@ function bindMobileNav() {
 
 function renderModule(moduleName, user) {
   if (moduleName === 'students') return renderStudentsShell(user);
+  if (moduleName === 'attendance') return renderAttendanceShell(user);
   if (moduleName === 'teachers' && user.role === 'Admin') return renderTeachersShell();
   if (moduleName === 'settings' && user.role === 'Admin') return renderSettingsShell();
   return renderDashboardHome(user);
@@ -700,7 +751,7 @@ function renderSidebar(route, user, moduleName) {
   const visibleModules = getRoleModules(user.role);
   const futureLinks = visibleModules.map((item) => {
     const moduleKey = item === 'My Child' ? 'students' : item.toLowerCase().replace(/\s+/g, '');
-    const isActiveModule = ['students', 'teachers', 'settings'].includes(moduleKey);
+    const isActiveModule = ['students', 'attendance', 'teachers', 'settings'].includes(moduleKey);
     if (isActiveModule) {
       return `
         <button class="nav-item nav-action ${moduleName === moduleKey ? 'active' : ''}" type="button" data-module="${moduleKey}">
@@ -1161,6 +1212,254 @@ function populateFilter(id, label, values, selectedValue) {
   ).join('');
 }
 
+function renderAttendanceShell(user = currentUser) {
+  const isParent = user && user.role === 'Parent';
+  return `
+    <section class="module-header">
+      <div>
+        <div class="section-kicker">Attendance</div>
+        <h1>${isParent ? 'My Child Attendance' : 'Daily Attendance'}</h1>
+        <p>Morning and afternoon attendance are tracked separately so half-day and full-day records are clear for school and parents.</p>
+      </div>
+    </section>
+    <section class="toolbar attendance-toolbar">
+      <div class="field">
+        <label for="attendanceDate">Date</label>
+        <input id="attendanceDate" type="date">
+      </div>
+      ${isParent ? '' : `
+        <div class="field">
+          <label for="attendanceGradeFilter">Class</label>
+          <select id="attendanceGradeFilter"></select>
+        </div>
+      `}
+      <button class="primary-btn compact" id="loadAttendanceButton" type="button">Load</button>
+    </section>
+    <section class="attendance-session-card" id="attendanceSessionCard">
+      <div class="user-chip">Loading attendance...</div>
+    </section>
+    <section class="table-card" id="attendanceHost">
+      <div class="user-chip">Loading attendance...</div>
+    </section>
+  `;
+}
+
+function loadAttendance() {
+  const host = document.getElementById('attendanceHost');
+  if (host) host.innerHTML = '<div class="user-chip">Loading attendance...</div>';
+
+  const today = new Date().toISOString().slice(0, 10);
+  if (!attendanceState.filters.date) attendanceState.filters.date = today;
+
+  api.listAttendance(attendanceState.filters)
+    .then((result) => {
+      if (!result.success) {
+        renderAttendanceError(result.message || 'Unable to load attendance');
+        return;
+      }
+
+      attendanceState = {
+        ...attendanceState,
+        attendance: result.attendance || [],
+        grades: result.grades || [],
+        settings: result.settings || {},
+        holiday: result.holiday || null,
+        permissions: result.permissions || attendanceState.permissions,
+        filters: {
+          ...attendanceState.filters,
+          date: result.date || attendanceState.filters.date,
+          academicYear: result.academicYear || attendanceState.filters.academicYear
+        }
+      };
+      renderAttendanceData();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderAttendanceError('Unable to load attendance');
+    });
+}
+
+function renderAttendanceData() {
+  const dateInput = document.getElementById('attendanceDate');
+  if (dateInput) dateInput.value = attendanceState.filters.date;
+
+  const gradeFilter = document.getElementById('attendanceGradeFilter');
+  if (gradeFilter) {
+    populateFilter('attendanceGradeFilter', 'All Classes', attendanceState.grades, attendanceState.filters.grade);
+    gradeFilter.onchange = (event) => {
+      attendanceState.filters.grade = event.target.value;
+      loadAttendance();
+    };
+  }
+
+  document.getElementById('loadAttendanceButton').onclick = () => {
+    attendanceState.filters.date = document.getElementById('attendanceDate').value;
+    loadAttendance();
+  };
+
+  renderAttendanceSessionCard();
+
+  const canMark = attendanceState.permissions.canMark && !attendanceState.holiday;
+  const rows = attendanceState.attendance.map((record) => renderAttendanceRow(record, canMark)).join('');
+  document.getElementById('attendanceHost').innerHTML = `
+    <form id="attendanceForm" action="javascript:void(0)">
+      <div class="table-scroll">
+        <table class="attendance-table">
+          <thead>
+            <tr>
+              <th>Student</th>
+              <th>Class</th>
+              <th>Morning</th>
+              <th>Afternoon</th>
+              <th>Day Status</th>
+              <th>Remarks</th>
+            </tr>
+          </thead>
+          <tbody>${rows || '<tr><td colspan="6">No students found for attendance.</td></tr>'}</tbody>
+        </table>
+      </div>
+      ${canMark ? '<button class="primary-btn compact attendance-save" id="saveAttendanceButton" type="submit">Save Attendance</button>' : ''}
+      <div class="message" id="attendanceMessage"></div>
+    </form>
+  `;
+
+  if (canMark) {
+    document.getElementById('attendanceForm').addEventListener('submit', submitAttendanceForm);
+  }
+
+  document.querySelectorAll('[data-view-attendance-student]').forEach((button) => {
+    button.addEventListener('click', () => {
+      const record = attendanceState.attendance.find((item) => item.StudentID === button.dataset.viewAttendanceStudent);
+      if (record) openStudentDetails(record);
+    });
+  });
+}
+
+function renderAttendanceSessionCard() {
+  const host = document.getElementById('attendanceSessionCard');
+  const settings = attendanceState.settings || {};
+  const holiday = attendanceState.holiday;
+  host.innerHTML = `
+    <div class="attendance-session-grid">
+      <article>
+        <span>Morning Session</span>
+        <strong>${escapeHtml(normalizeTimeValue(settings.MorningAttendanceStartTime) || '08:30')} - ${escapeHtml(normalizeTimeValue(settings.MorningAttendanceEndTime) || '10:00')}</strong>
+      </article>
+      <article>
+        <span>Afternoon Session</span>
+        <strong>${escapeHtml(normalizeTimeValue(settings.AfternoonAttendanceStartTime) || '13:30')} - ${escapeHtml(normalizeTimeValue(settings.AfternoonAttendanceEndTime) || '15:00')}</strong>
+      </article>
+      <article class="${holiday ? 'holiday-alert' : ''}">
+        <span>${holiday ? 'Holiday' : 'Attendance Day'}</span>
+        <strong>${holiday ? escapeHtml(holiday.remark) : 'Attendance can be marked today'}</strong>
+      </article>
+    </div>
+  `;
+}
+
+function renderAttendanceRow(record, canMark) {
+  const status = record.Status || getAttendanceStatusPreview(record.MorningStatus, record.AfternoonStatus);
+  const parentMessage = record.ParentMessage || getAttendanceParentMessage(record.Name, record.MorningStatus, record.AfternoonStatus);
+
+  return `
+    <tr data-student-id="${escapeHtml(record.StudentID)}">
+      <td>
+        <button class="student-name-button" type="button" data-view-attendance-student="${escapeHtml(record.StudentID)}">${escapeHtml(record.Name || 'Student')}</button>
+        <small>${escapeHtml(record.StudentID || '')}${parentMessage ? ` | ${escapeHtml(parentMessage)}` : ''}</small>
+      </td>
+      <td>${escapeHtml(record.Grade || 'Not set')}</td>
+      <td>${canMark ? renderAttendanceSelect('MorningStatus', record.MorningStatus) : escapeHtml(record.MorningStatus || 'Not marked')}</td>
+      <td>${canMark ? renderAttendanceSelect('AfternoonStatus', record.AfternoonStatus) : escapeHtml(record.AfternoonStatus || 'Not marked')}</td>
+      <td><span class="status-pill ${getAttendanceStatusClass(status)}">${escapeHtml(status || 'Not marked')}</span></td>
+      <td>${canMark ? `<input name="Remarks" value="${escapeHtml(record.Remarks || '')}" placeholder="Optional note">` : escapeHtml(record.Remarks || '-')}</td>
+    </tr>
+  `;
+}
+
+function renderAttendanceSelect(name, value) {
+  return `
+    <select name="${name}" required>
+      <option value="">Select</option>
+      <option value="Present" ${value === 'Present' ? 'selected' : ''}>Present</option>
+      <option value="Absent" ${value === 'Absent' ? 'selected' : ''}>Absent</option>
+    </select>
+  `;
+}
+
+function submitAttendanceForm(event) {
+  event.preventDefault();
+  const button = document.getElementById('saveAttendanceButton');
+  const message = document.getElementById('attendanceMessage');
+  const records = Array.from(document.querySelectorAll('#attendanceHost tbody tr[data-student-id]')).map((row) => ({
+    StudentID: row.dataset.studentId,
+    MorningStatus: row.querySelector('[name="MorningStatus"]')?.value || '',
+    AfternoonStatus: row.querySelector('[name="AfternoonStatus"]')?.value || '',
+    Remarks: row.querySelector('[name="Remarks"]')?.value || ''
+  }));
+
+  const incomplete = records.some((record) => !record.MorningStatus || !record.AfternoonStatus);
+  if (incomplete) {
+    message.textContent = 'Please mark both morning and afternoon attendance for every visible student.';
+    return;
+  }
+
+  button.disabled = true;
+  button.textContent = 'Saving...';
+  message.textContent = '';
+
+  api.saveAttendance({
+    date: attendanceState.filters.date,
+    academicYear: attendanceState.filters.academicYear,
+    records
+  })
+    .then((result) => {
+      button.disabled = false;
+      button.textContent = 'Save Attendance';
+      if (!result.success) {
+        message.textContent = result.message || 'Unable to save attendance';
+        return;
+      }
+      message.textContent = 'Attendance saved.';
+      loadAttendance();
+    })
+    .catch((error) => {
+      console.error(error);
+      button.disabled = false;
+      button.textContent = 'Save Attendance';
+      message.textContent = 'Unable to save attendance';
+    });
+}
+
+function getAttendanceStatusPreview(morningStatus, afternoonStatus) {
+  if (!morningStatus || !afternoonStatus) return '';
+  if (morningStatus === 'Present' && afternoonStatus === 'Present') return 'Present';
+  if (morningStatus === 'Absent' && afternoonStatus === 'Absent') return 'Full Day Absent';
+  if (morningStatus === 'Absent' && afternoonStatus === 'Present') return 'Half Day - Afternoon Present';
+  return 'Half Day - Morning Present';
+}
+
+function getAttendanceParentMessage(name, morningStatus, afternoonStatus) {
+  const status = getAttendanceStatusPreview(morningStatus, afternoonStatus);
+  const studentName = name || 'Your child';
+  if (status === 'Present') return `${studentName} was present for both sessions.`;
+  if (status === 'Full Day Absent') return `${studentName} was absent for the full school day.`;
+  if (status === 'Half Day - Afternoon Present') return `${studentName} was present in the afternoon, so attendance is marked as half day.`;
+  if (status === 'Half Day - Morning Present') return `${studentName} was present in the morning, so attendance is marked as half day.`;
+  return '';
+}
+
+function getAttendanceStatusClass(status) {
+  if (status === 'Present') return 'active';
+  if (status === 'Full Day Absent') return 'inactive';
+  if (status && status.indexOf('Half Day') === 0) return 'halfday';
+  return '';
+}
+
+function renderAttendanceError(message) {
+  const host = document.getElementById('attendanceHost');
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
+}
+
 function renderTeachersShell() {
   return `
     <section class="module-header">
@@ -1417,10 +1716,13 @@ function renderSettingsShell() {
           ${renderSettingsField('SchoolName', 'School Name')}
           ${renderSettingsField('CurrentAcademicYear', 'Current Academic Year')}
         </div>
+        <span>Attendance Sessions</span>
         <div class="form-grid">
           ${renderSettingsField('NextAcademicYear', 'Next Academic Year')}
-          ${renderSettingsField('AttendanceStartTime', 'Attendance Start Time', 'time')}
-          ${renderSettingsField('AttendanceEndTime', 'Attendance End Time', 'time')}
+          ${renderSettingsField('MorningAttendanceStartTime', 'Morning Start Time', 'time')}
+          ${renderSettingsField('MorningAttendanceEndTime', 'Morning End Time', 'time')}
+          ${renderSettingsField('AfternoonAttendanceStartTime', 'Afternoon Start Time', 'time')}
+          ${renderSettingsField('AfternoonAttendanceEndTime', 'Afternoon End Time', 'time')}
         </div>
         <button class="primary-btn compact" id="saveSettingsButton" type="submit">Save Settings</button>
         <div class="message" id="settingsMessage"></div>
@@ -1488,9 +1790,17 @@ function loadSettings() {
 
 function renderSettingsData() {
   const settings = settingsState.settings || {};
-  ['SchoolName', 'CurrentAcademicYear', 'NextAcademicYear', 'AttendanceStartTime', 'AttendanceEndTime'].forEach((key) => {
+  [
+    'SchoolName',
+    'CurrentAcademicYear',
+    'NextAcademicYear',
+    'MorningAttendanceStartTime',
+    'MorningAttendanceEndTime',
+    'AfternoonAttendanceStartTime',
+    'AfternoonAttendanceEndTime'
+  ].forEach((key) => {
     const input = document.getElementById(key);
-    if (input) input.value = key.indexOf('Attendance') === 0 ? normalizeTimeValue(settings[key]) : settings[key] || '';
+    if (input) input.value = key.indexOf('Attendance') > -1 ? normalizeTimeValue(settings[key]) : settings[key] || '';
   });
 
   document.getElementById('academicSettingsForm').addEventListener('submit', submitSettingsForm);
