@@ -1429,8 +1429,12 @@ function renderAttendanceSessionCard() {
 
   statusCards.push(`
     <article>
-      <span>Recorded Attendance</span>
-      <strong>${percentage.percentage == null ? 'Not enough finalized records' : `${escapeHtml(percentage.percentage)}% across visible students`}</strong>
+      <span>${isParent ? 'Overall Attendance' : 'Class Attendance Average'}</span>
+      <strong>${percentage.percentage == null
+        ? 'Not enough finalized records'
+        : isParent
+          ? `${escapeHtml(percentage.percentage)}% attendance this academic year`
+          : `${escapeHtml(percentage.percentage)}% across visible students`}</strong>
     </article>
   `);
 
