@@ -71,7 +71,7 @@ let settingsState = {
   settings: null
 };
 let attendanceState = {
-  filters: { date: '', grade: '', academicYear: '' },
+  filters: { date: '', grade: '', academicYear: '', session: 'Morning' },
   attendance: [],
   grades: [],
   settings: null,
@@ -356,6 +356,10 @@ const mockApi = {
       academicYear: '2026-27',
       settings: {
         CurrentAcademicYear: '2026-27',
+        AcademicYearStartDate: '2026-06-01',
+        AcademicYearEndDate: '2027-04-30',
+        WorkingDays: 'Mon,Tue,Wed,Thu,Fri,Sat',
+        AttendancePercentageMode: 'FinalizedSessions',
         MorningAttendanceStartTime: '08:30',
         MorningAttendanceEndTime: '10:00',
         AfternoonAttendanceStartTime: '13:30',
@@ -371,8 +375,20 @@ const mockApi = {
         AfternoonStatus: '',
         Status: '',
         Remarks: '',
-        ParentMessage: ''
+        ParentMessage: '',
+        RecordState: 'Draft',
+        AttendancePercentage: {
+          presentSessions: 0,
+          eligibleSessions: 0,
+          percentage: null
+        }
       })),
+      session: filters.session || 'Morning',
+      percentage: {
+        presentSessions: 0,
+        eligibleSessions: 0,
+        percentage: null
+      },
       grades: uniqueValues(mockStudents, 'Grade'),
       permissions: { canView: true, canMark: getMockSession(getToken())?.user.role !== 'Parent' }
     }));
@@ -458,6 +474,10 @@ const mockApi = {
         SchoolName: 'Pinnacle Upper Primary School',
         CurrentAcademicYear: '2026-27',
         NextAcademicYear: '2027-28',
+        AcademicYearStartDate: '2026-06-01',
+        AcademicYearEndDate: '2027-04-30',
+        WorkingDays: 'Mon,Tue,Wed,Thu,Fri,Sat',
+        AttendancePercentageMode: 'FinalizedSessions',
         MorningAttendanceStartTime: '08:30',
         MorningAttendanceEndTime: '10:00',
         AfternoonAttendanceStartTime: '13:30',
@@ -1237,6 +1257,13 @@ function renderAttendanceShell(user = currentUser) {
           <label for="attendanceGradeFilter">Class</label>
           <select id="attendanceGradeFilter"></select>
         </div>
+        <div class="field">
+          <label for="attendanceSessionFilter">Session</label>
+          <select id="attendanceSessionFilter">
+            <option value="Morning">Morning</option>
+            <option value="Afternoon">Afternoon</option>
+          </select>
+        </div>
       `}
       <button class="primary-btn compact" id="loadAttendanceButton" type="button">Load</button>
     </section>
@@ -1272,10 +1299,12 @@ function loadAttendance() {
         holiday: result.holiday || null,
         lock: result.lock || null,
         permissions: result.permissions || attendanceState.permissions,
+        percentage: result.percentage || null,
         filters: {
           ...attendanceState.filters,
           date: result.date || attendanceState.filters.date,
-          academicYear: result.academicYear || attendanceState.filters.academicYear
+          academicYear: result.academicYear || attendanceState.filters.academicYear,
+          session: result.session || attendanceState.filters.session
         }
       };
       renderAttendanceData();
@@ -1302,6 +1331,15 @@ function renderAttendanceData() {
     };
   }
 
+  const sessionFilter = document.getElementById('attendanceSessionFilter');
+  if (sessionFilter) {
+    sessionFilter.value = attendanceState.filters.session || 'Morning';
+    sessionFilter.onchange = (event) => {
+      attendanceState.filters.session = event.target.value;
+      loadAttendance();
+    };
+  }
+
   document.getElementById('loadAttendanceButton').onclick = () => {
     const selectedDate = document.getElementById('attendanceDate').value;
     attendanceState.filters.date = selectedDate > getTodayDate() ? getTodayDate() : selectedDate;
@@ -1323,13 +1361,24 @@ function renderAttendanceData() {
               <th>Morning</th>
               <th>Afternoon</th>
               <th>Day Status</th>
+              <th>Attendance</th>
               <th>Remarks</th>
             </tr>
           </thead>
-          <tbody>${rows || '<tr><td colspan="6">No students found for attendance.</td></tr>'}</tbody>
+          <tbody>${rows || '<tr><td colspan="7">No students found for attendance.</td></tr>'}</tbody>
         </table>
       </div>
-      ${canMark ? '<button class="primary-btn compact attendance-save" id="saveAttendanceButton" type="submit">Save Attendance</button>' : ''}
+      ${canMark ? `
+        <div class="attendance-save-panel">
+          ${currentUser && currentUser.role === 'Admin' ? `
+            <div class="field">
+              <label for="attendanceCorrectionReason">Correction note</label>
+              <input id="attendanceCorrectionReason" placeholder="Required when correcting an existing record">
+            </div>
+          ` : ''}
+          <button class="primary-btn compact attendance-save" id="saveAttendanceButton" type="submit">Save ${escapeHtml(attendanceState.filters.session)} Attendance</button>
+        </div>
+      ` : ''}
       <div class="message" id="attendanceMessage"></div>
     </form>
   `;
@@ -1357,6 +1406,7 @@ function renderAttendanceSessionCard() {
   const holiday = attendanceState.holiday;
   const lock = attendanceState.lock;
   const isParent = currentUser && currentUser.role === 'Parent';
+  const percentage = attendanceState.percentage || {};
   const statusCards = [];
 
   if (holiday) {
@@ -1366,23 +1416,23 @@ function renderAttendanceSessionCard() {
         <strong>${escapeHtml(holiday.remark)}</strong>
       </article>
     `);
-  } else if (!isParent) {
-    statusCards.push(`
-      <article>
-        <span>Attendance Day</span>
-        <strong>Attendance can be marked today</strong>
-      </article>
-    `);
   }
 
   if (!isParent) {
     statusCards.push(`
       <article class="${lock && lock.locked ? 'holiday-alert' : ''}">
-        <span>Teacher Edit Window</span>
-        <strong>${lock && lock.locked ? escapeHtml(lock.message) : `Open until ${escapeHtml(normalizeTimeValue(settings.AttendanceEditCutoffTime) || '17:00')}`}</strong>
+        <span>${escapeHtml(attendanceState.filters.session)} Session</span>
+        <strong>${lock && lock.locked ? escapeHtml(lock.message) : 'Open for marking'}</strong>
       </article>
     `);
   }
+
+  statusCards.push(`
+    <article>
+      <span>Recorded Attendance</span>
+      <strong>${percentage.percentage == null ? 'Not enough finalized records' : `${escapeHtml(percentage.percentage)}% across visible students`}</strong>
+    </article>
+  `);
 
   host.innerHTML = `
     <div class="attendance-session-grid">
@@ -1402,6 +1452,11 @@ function renderAttendanceSessionCard() {
 function renderAttendanceRow(record, canMark) {
   const status = record.Status || getAttendanceStatusPreview(record.MorningStatus, record.AfternoonStatus);
   const parentMessage = record.ParentMessage || getAttendanceParentMessage(record.Name, record.MorningStatus, record.AfternoonStatus);
+  const activeSession = attendanceState.filters.session || 'Morning';
+  const percentage = record.AttendancePercentage || {};
+  const percentageLabel = percentage.percentage == null
+    ? 'Not available'
+    : `${percentage.percentage}% (${percentage.presentSessions}/${percentage.eligibleSessions} sessions)`;
 
   return `
     <tr data-student-id="${escapeHtml(record.StudentID)}">
@@ -1410,9 +1465,13 @@ function renderAttendanceRow(record, canMark) {
         <small>${escapeHtml(record.StudentID || '')}${parentMessage ? ` | ${escapeHtml(parentMessage)}` : ''}</small>
       </td>
       <td>${escapeHtml(record.Grade || 'Not set')}</td>
-      <td>${canMark ? renderAttendanceSelect('MorningStatus', record.MorningStatus) : escapeHtml(record.MorningStatus || 'Not marked')}</td>
-      <td>${canMark ? renderAttendanceSelect('AfternoonStatus', record.AfternoonStatus) : escapeHtml(record.AfternoonStatus || 'Not marked')}</td>
-      <td><span class="status-pill ${getAttendanceStatusClass(status)}">${escapeHtml(status || 'Not marked')}</span></td>
+      <td>${canMark && activeSession === 'Morning' ? renderAttendanceSelect('SessionStatus', record.MorningStatus) : escapeHtml(record.MorningStatus || 'Not marked')}</td>
+      <td>${canMark && activeSession === 'Afternoon' ? renderAttendanceSelect('SessionStatus', record.AfternoonStatus) : escapeHtml(record.AfternoonStatus || 'Not marked')}</td>
+      <td>
+        <span class="status-pill ${getAttendanceStatusClass(status)}">${escapeHtml(status || 'Not marked')}</span>
+        <small>${escapeHtml(record.RecordState || 'Draft')}</small>
+      </td>
+      <td><strong>${escapeHtml(percentageLabel)}</strong></td>
       <td>${canMark ? `<input name="Remarks" value="${escapeHtml(record.Remarks || '')}" placeholder="Optional note">` : escapeHtml(record.Remarks || '-')}</td>
     </tr>
   `;
@@ -1440,14 +1499,14 @@ function submitAttendanceForm(event) {
 
   const records = Array.from(document.querySelectorAll('#attendanceHost tbody tr[data-student-id]')).map((row) => ({
     StudentID: row.dataset.studentId,
-    MorningStatus: row.querySelector('[name="MorningStatus"]')?.value || '',
-    AfternoonStatus: row.querySelector('[name="AfternoonStatus"]')?.value || '',
-    Remarks: row.querySelector('[name="Remarks"]')?.value || ''
+    Status: row.querySelector('[name="SessionStatus"]')?.value || '',
+    Remarks: row.querySelector('[name="Remarks"]')?.value || '',
+    CorrectionReason: document.getElementById('attendanceCorrectionReason')?.value || ''
   }));
 
-  const incomplete = records.some((record) => !record.MorningStatus || !record.AfternoonStatus);
+  const incomplete = records.some((record) => !record.Status);
   if (incomplete) {
-    message.textContent = 'Please mark both morning and afternoon attendance for every visible student.';
+    message.textContent = `Please mark ${attendanceState.filters.session.toLowerCase()} attendance for every visible student.`;
     return;
   }
 
@@ -1458,6 +1517,7 @@ function submitAttendanceForm(event) {
   api.saveAttendance({
     date: attendanceState.filters.date,
     academicYear: attendanceState.filters.academicYear,
+    session: attendanceState.filters.session,
     records
   })
     .then((result) => {
@@ -1467,7 +1527,7 @@ function submitAttendanceForm(event) {
         message.textContent = result.message || 'Unable to save attendance';
         return;
       }
-      message.textContent = 'Attendance saved.';
+      message.textContent = `${attendanceState.filters.session} attendance saved.`;
       loadAttendance();
     })
     .catch((error) => {
@@ -1504,7 +1564,9 @@ function getAttendanceStatusClass(status) {
 }
 
 function getTodayDate() {
-  return new Date().toISOString().slice(0, 10);
+  const now = new Date();
+  const localTime = new Date(now.getTime() - now.getTimezoneOffset() * 60000);
+  return localTime.toISOString().slice(0, 10);
 }
 
 function renderAttendanceError(message) {
@@ -1767,15 +1829,25 @@ function renderSettingsShell() {
         <div class="form-grid">
           ${renderSettingsField('SchoolName', 'School Name')}
           ${renderSettingsField('CurrentAcademicYear', 'Current Academic Year')}
+          ${renderSettingsField('AcademicYearStartDate', 'Academic Year Start', 'date')}
+          ${renderSettingsField('AcademicYearEndDate', 'Academic Year End', 'date')}
+          ${renderSettingsField('NextAcademicYear', 'Next Academic Year')}
         </div>
+        <span>School Week</span>
+        ${renderWorkingDaysField()}
         <span>Attendance Sessions</span>
         <div class="form-grid">
-          ${renderSettingsField('NextAcademicYear', 'Next Academic Year')}
           ${renderSettingsField('MorningAttendanceStartTime', 'Morning Start Time', 'time')}
           ${renderSettingsField('MorningAttendanceEndTime', 'Morning End Time', 'time')}
           ${renderSettingsField('AfternoonAttendanceStartTime', 'Afternoon Start Time', 'time')}
           ${renderSettingsField('AfternoonAttendanceEndTime', 'Afternoon End Time', 'time')}
           ${renderSettingsField('AttendanceEditCutoffTime', 'Teacher Edit Cutoff', 'time')}
+        </div>
+        <div class="field">
+          <label for="AttendancePercentageMode">Attendance Percentage Rule</label>
+          <select id="AttendancePercentageMode" name="AttendancePercentageMode">
+            <option value="FinalizedSessions">Count finalized morning and afternoon sessions</option>
+          </select>
         </div>
         <button class="primary-btn compact" id="saveSettingsButton" type="submit">Save Settings</button>
         <div class="message" id="settingsMessage"></div>
@@ -1825,6 +1897,19 @@ function renderSettingsField(name, label, type = 'text') {
   `;
 }
 
+function renderWorkingDaysField() {
+  return `
+    <div class="weekday-picker" id="WorkingDays">
+      ${['Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat', 'Sun'].map((day) => `
+        <label>
+          <input type="checkbox" name="WorkingDay" value="${day}">
+          <span>${day}</span>
+        </label>
+      `).join('')}
+    </div>
+  `;
+}
+
 function loadSettings() {
   api.getSettings()
     .then((result) => {
@@ -1847,6 +1932,8 @@ function renderSettingsData() {
     'SchoolName',
     'CurrentAcademicYear',
     'NextAcademicYear',
+    'AcademicYearStartDate',
+    'AcademicYearEndDate',
     'MorningAttendanceStartTime',
     'MorningAttendanceEndTime',
     'AfternoonAttendanceStartTime',
@@ -1856,6 +1943,13 @@ function renderSettingsData() {
     const input = document.getElementById(key);
     if (input) input.value = key.indexOf('Attendance') > -1 ? normalizeTimeValue(settings[key]) : settings[key] || '';
   });
+
+  const selectedDays = splitCsv(settings.WorkingDays || 'Mon,Tue,Wed,Thu,Fri,Sat');
+  document.querySelectorAll('[name="WorkingDay"]').forEach((checkbox) => {
+    checkbox.checked = selectedDays.includes(checkbox.value);
+  });
+  const percentageMode = document.getElementById('AttendancePercentageMode');
+  if (percentageMode) percentageMode.value = settings.AttendancePercentageMode || 'FinalizedSessions';
 
   document.getElementById('academicSettingsForm').addEventListener('submit', submitSettingsForm);
   document.getElementById('holidayForm').addEventListener('submit', submitHolidayForm);
@@ -1868,6 +1962,14 @@ function submitSettingsForm(event) {
   const button = document.getElementById('saveSettingsButton');
   const message = document.getElementById('settingsMessage');
   const settings = Object.fromEntries(new FormData(form).entries());
+  settings.WorkingDays = Array.from(form.querySelectorAll('[name="WorkingDay"]:checked'))
+    .map((checkbox) => checkbox.value)
+    .join(',');
+
+  if (!settings.WorkingDays) {
+    message.textContent = 'Select at least one working day.';
+    return;
+  }
 
   button.disabled = true;
   button.textContent = 'Saving...';
