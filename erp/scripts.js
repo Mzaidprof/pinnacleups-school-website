@@ -493,7 +493,7 @@ function getRoute() {
 function getModule() {
   const params = new URLSearchParams(window.location.search);
   const moduleName = String(params.get('module') || 'dashboard').trim().toLowerCase();
-  return ['students', 'teachers', 'settings'].includes(moduleName) ? moduleName : 'dashboard';
+  return ['students', 'attendance', 'teachers', 'settings'].includes(moduleName) ? moduleName : 'dashboard';
 }
 
 function normalizeRoute(route) {
