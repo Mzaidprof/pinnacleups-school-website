@@ -1427,16 +1427,25 @@ function renderAttendanceSessionCard() {
     `);
   }
 
-  statusCards.push(`
-    <article>
-      <span>${isParent ? 'Overall Attendance' : 'Class Attendance Average'}</span>
-      <strong>${percentage.percentage == null
-        ? 'Not enough finalized records'
-        : isParent
-          ? `${escapeHtml(percentage.percentage)}% attendance this academic year`
-          : `${escapeHtml(percentage.percentage)}% across visible students`}</strong>
-    </article>
-  `);
+  if (isParent && attendanceState.attendance.length > 1) {
+    statusCards.push(`
+      <article>
+        <span>Attendance by Child</span>
+        <strong>Each child’s attendance is shown separately below</strong>
+      </article>
+    `);
+  } else {
+    statusCards.push(`
+      <article>
+        <span>${isParent ? 'Overall Attendance' : 'Class Attendance Average'}</span>
+        <strong>${percentage.percentage == null
+          ? 'Not enough finalized records'
+          : isParent
+            ? `${escapeHtml(percentage.percentage)}% attendance this academic year`
+            : `${escapeHtml(percentage.percentage)}% across visible students`}</strong>
+      </article>
+    `);
+  }
 
   host.innerHTML = `
     <div class="attendance-session-grid">
