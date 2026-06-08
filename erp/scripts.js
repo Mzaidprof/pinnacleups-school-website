@@ -1330,7 +1330,12 @@ function renderAttendanceData() {
   document.querySelectorAll('[data-view-attendance-student]').forEach((button) => {
     button.addEventListener('click', () => {
       const record = attendanceState.attendance.find((item) => item.StudentID === button.dataset.viewAttendanceStudent);
-      if (record) openStudentDetails(record);
+      if (record) {
+        openStudentDetails({
+          ...record,
+          Status: record.StudentStatus || 'Active'
+        });
+      }
     });
   });
 }
