@@ -1356,6 +1356,34 @@ function renderAttendanceSessionCard() {
   const settings = attendanceState.settings || {};
   const holiday = attendanceState.holiday;
   const lock = attendanceState.lock;
+  const isParent = currentUser && currentUser.role === 'Parent';
+  const statusCards = [];
+
+  if (holiday) {
+    statusCards.push(`
+      <article class="holiday-alert">
+        <span>Holiday</span>
+        <strong>${escapeHtml(holiday.remark)}</strong>
+      </article>
+    `);
+  } else if (!isParent) {
+    statusCards.push(`
+      <article>
+        <span>Attendance Day</span>
+        <strong>Attendance can be marked today</strong>
+      </article>
+    `);
+  }
+
+  if (!isParent) {
+    statusCards.push(`
+      <article class="${lock && lock.locked ? 'holiday-alert' : ''}">
+        <span>Teacher Edit Window</span>
+        <strong>${lock && lock.locked ? escapeHtml(lock.message) : `Open until ${escapeHtml(normalizeTimeValue(settings.AttendanceEditCutoffTime) || '17:00')}`}</strong>
+      </article>
+    `);
+  }
+
   host.innerHTML = `
     <div class="attendance-session-grid">
       <article>
@@ -1366,14 +1394,7 @@ function renderAttendanceSessionCard() {
         <span>Afternoon Session</span>
         <strong>${escapeHtml(normalizeTimeValue(settings.AfternoonAttendanceStartTime) || '13:30')} - ${escapeHtml(normalizeTimeValue(settings.AfternoonAttendanceEndTime) || '15:00')}</strong>
       </article>
-      <article class="${holiday ? 'holiday-alert' : ''}">
-        <span>${holiday ? 'Holiday' : 'Attendance Day'}</span>
-        <strong>${holiday ? escapeHtml(holiday.remark) : 'Attendance can be marked today'}</strong>
-      </article>
-      <article class="${lock && lock.locked ? 'holiday-alert' : ''}">
-        <span>Teacher Edit Window</span>
-        <strong>${lock && lock.locked ? escapeHtml(lock.message) : `Open until ${escapeHtml(normalizeTimeValue(settings.AttendanceEditCutoffTime) || '17:00')}`}</strong>
-      </article>
+      ${statusCards.join('')}
     </div>
   `;
 }
