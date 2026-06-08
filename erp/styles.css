@@ -815,7 +815,8 @@ td small {
 }
 
 .attendance-toolbar {
-  grid-template-columns: minmax(180px, 1fr) 190px auto;
+  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  align-items: end;
 }
 
 .attendance-session-card {
@@ -866,6 +867,24 @@ td small {
 
 .attendance-save {
   margin-top: 16px;
+}
+
+.attendance-save-panel {
+  margin-top: 16px;
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: 14px;
+}
+
+.attendance-save-panel .field {
+  width: min(520px, 100%);
+  margin: 0;
+}
+
+.attendance-save-panel .attendance-save {
+  flex: 0 0 auto;
+  margin: 0;
 }
 
 .actions {
@@ -1214,6 +1233,51 @@ td small {
   display: flex;
   justify-content: space-between;
   gap: 16px;
+}
+
+.weekday-picker {
+  margin: 0 0 22px;
+  display: grid;
+  grid-template-columns: repeat(7, minmax(54px, 1fr));
+  gap: 8px;
+}
+
+.weekday-picker label {
+  position: relative;
+  cursor: pointer;
+}
+
+.weekday-picker input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.weekday-picker span {
+  min-height: 44px;
+  margin: 0;
+  display: grid;
+  place-items: center;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.66);
+  color: var(--navy);
+  font-size: 0.82rem;
+  letter-spacing: 0;
+  text-transform: none;
+  transition: background 0.2s var(--ease-apple), border-color 0.2s var(--ease-apple), color 0.2s var(--ease-apple), transform 0.2s var(--ease-apple);
+}
+
+.weekday-picker input:checked + span {
+  border-color: var(--gold);
+  background: var(--navy);
+  color: var(--gold-light);
+  transform: translateY(-1px);
+}
+
+.weekday-picker input:focus-visible + span {
+  outline: 3px solid rgba(201, 168, 76, 0.3);
+  outline-offset: 2px;
 }
 
 .promotion-flow {
@@ -1652,6 +1716,15 @@ td small {
     grid-template-columns: 1fr;
   }
 
+  .attendance-save-panel {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .attendance-save-panel .attendance-save {
+    width: 100%;
+  }
+
   .module-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1778,6 +1851,10 @@ td small {
 
   .form-grid {
     grid-template-columns: 1fr;
+  }
+
+  .weekday-picker {
+    grid-template-columns: repeat(4, minmax(54px, 1fr));
   }
 
   .holiday-item {
