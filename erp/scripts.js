@@ -76,6 +76,7 @@ let attendanceState = {
   grades: [],
   settings: null,
   holiday: null,
+  lock: null,
   permissions: { canView: false, canMark: false }
 };
 
@@ -359,8 +360,10 @@ const mockApi = {
         MorningAttendanceEndTime: '10:00',
         AfternoonAttendanceStartTime: '13:30',
         AfternoonAttendanceEndTime: '15:00',
+        AttendanceEditCutoffTime: '17:00',
         SpecialHolidays: []
       },
+      lock: null,
       holiday: null,
       attendance: mockStudents.map((student) => ({
         ...student,
@@ -459,6 +462,7 @@ const mockApi = {
         MorningAttendanceEndTime: '10:00',
         AfternoonAttendanceStartTime: '13:30',
         AfternoonAttendanceEndTime: '15:00',
+        AttendanceEditCutoffTime: '17:00',
         SpecialHolidays: []
       }
     }));
@@ -1214,6 +1218,7 @@ function populateFilter(id, label, values, selectedValue) {
 
 function renderAttendanceShell(user = currentUser) {
   const isParent = user && user.role === 'Parent';
+  const today = getTodayDate();
   return `
     <section class="module-header">
       <div>
@@ -1225,7 +1230,7 @@ function renderAttendanceShell(user = currentUser) {
     <section class="toolbar attendance-toolbar">
       <div class="field">
         <label for="attendanceDate">Date</label>
-        <input id="attendanceDate" type="date">
+        <input id="attendanceDate" type="date" max="${today}">
       </div>
       ${isParent ? '' : `
         <div class="field">
@@ -1248,8 +1253,9 @@ function loadAttendance() {
   const host = document.getElementById('attendanceHost');
   if (host) host.innerHTML = '<div class="user-chip">Loading attendance...</div>';
 
-  const today = new Date().toISOString().slice(0, 10);
+  const today = getTodayDate();
   if (!attendanceState.filters.date) attendanceState.filters.date = today;
+  if (attendanceState.filters.date > today) attendanceState.filters.date = today;
 
   api.listAttendance(attendanceState.filters)
     .then((result) => {
@@ -1264,6 +1270,7 @@ function loadAttendance() {
         grades: result.grades || [],
         settings: result.settings || {},
         holiday: result.holiday || null,
+        lock: result.lock || null,
         permissions: result.permissions || attendanceState.permissions,
         filters: {
           ...attendanceState.filters,
@@ -1281,7 +1288,10 @@ function loadAttendance() {
 
 function renderAttendanceData() {
   const dateInput = document.getElementById('attendanceDate');
-  if (dateInput) dateInput.value = attendanceState.filters.date;
+  if (dateInput) {
+    dateInput.max = getTodayDate();
+    dateInput.value = attendanceState.filters.date;
+  }
 
   const gradeFilter = document.getElementById('attendanceGradeFilter');
   if (gradeFilter) {
@@ -1293,7 +1303,8 @@ function renderAttendanceData() {
   }
 
   document.getElementById('loadAttendanceButton').onclick = () => {
-    attendanceState.filters.date = document.getElementById('attendanceDate').value;
+    const selectedDate = document.getElementById('attendanceDate').value;
+    attendanceState.filters.date = selectedDate > getTodayDate() ? getTodayDate() : selectedDate;
     loadAttendance();
   };
 
@@ -1344,6 +1355,7 @@ function renderAttendanceSessionCard() {
   const host = document.getElementById('attendanceSessionCard');
   const settings = attendanceState.settings || {};
   const holiday = attendanceState.holiday;
+  const lock = attendanceState.lock;
   host.innerHTML = `
     <div class="attendance-session-grid">
       <article>
@@ -1357,6 +1369,10 @@ function renderAttendanceSessionCard() {
       <article class="${holiday ? 'holiday-alert' : ''}">
         <span>${holiday ? 'Holiday' : 'Attendance Day'}</span>
         <strong>${holiday ? escapeHtml(holiday.remark) : 'Attendance can be marked today'}</strong>
+      </article>
+      <article class="${lock && lock.locked ? 'holiday-alert' : ''}">
+        <span>Teacher Edit Window</span>
+        <strong>${lock && lock.locked ? escapeHtml(lock.message) : `Open until ${escapeHtml(normalizeTimeValue(settings.AttendanceEditCutoffTime) || '17:00')}`}</strong>
       </article>
     </div>
   `;
@@ -1395,6 +1411,12 @@ function submitAttendanceForm(event) {
   event.preventDefault();
   const button = document.getElementById('saveAttendanceButton');
   const message = document.getElementById('attendanceMessage');
+
+  if (attendanceState.filters.date > getTodayDate()) {
+    message.textContent = 'Future attendance cannot be marked.';
+    return;
+  }
+
   const records = Array.from(document.querySelectorAll('#attendanceHost tbody tr[data-student-id]')).map((row) => ({
     StudentID: row.dataset.studentId,
     MorningStatus: row.querySelector('[name="MorningStatus"]')?.value || '',
@@ -1458,6 +1480,10 @@ function getAttendanceStatusClass(status) {
   if (status === 'Full Day Absent') return 'inactive';
   if (status && status.indexOf('Half Day') === 0) return 'halfday';
   return '';
+}
+
+function getTodayDate() {
+  return new Date().toISOString().slice(0, 10);
 }
 
 function renderAttendanceError(message) {
@@ -1728,6 +1754,7 @@ function renderSettingsShell() {
           ${renderSettingsField('MorningAttendanceEndTime', 'Morning End Time', 'time')}
           ${renderSettingsField('AfternoonAttendanceStartTime', 'Afternoon Start Time', 'time')}
           ${renderSettingsField('AfternoonAttendanceEndTime', 'Afternoon End Time', 'time')}
+          ${renderSettingsField('AttendanceEditCutoffTime', 'Teacher Edit Cutoff', 'time')}
         </div>
         <button class="primary-btn compact" id="saveSettingsButton" type="submit">Save Settings</button>
         <div class="message" id="settingsMessage"></div>
@@ -1802,7 +1829,8 @@ function renderSettingsData() {
     'MorningAttendanceStartTime',
     'MorningAttendanceEndTime',
     'AfternoonAttendanceStartTime',
-    'AfternoonAttendanceEndTime'
+    'AfternoonAttendanceEndTime',
+    'AttendanceEditCutoffTime'
   ].forEach((key) => {
     const input = document.getElementById(key);
     if (input) input.value = key.indexOf('Attendance') > -1 ? normalizeTimeValue(settings[key]) : settings[key] || '';
