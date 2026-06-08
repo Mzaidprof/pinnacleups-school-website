@@ -809,6 +809,65 @@ td small {
   color: var(--danger);
 }
 
+.status-pill.halfday {
+  background: rgba(201, 168, 76, 0.16);
+  color: #8a6510;
+}
+
+.attendance-toolbar {
+  grid-template-columns: minmax(180px, 1fr) 190px auto;
+}
+
+.attendance-session-card {
+  margin: 18px 0;
+}
+
+.attendance-session-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 14px;
+}
+
+.attendance-session-grid article {
+  padding: 18px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.78);
+  box-shadow: var(--soft-shadow);
+  backdrop-filter: blur(14px) saturate(1.16);
+  -webkit-backdrop-filter: blur(14px) saturate(1.16);
+}
+
+.attendance-session-grid span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.attendance-session-grid strong {
+  display: block;
+  color: var(--navy);
+  line-height: 1.35;
+}
+
+.attendance-session-grid .holiday-alert {
+  border-color: rgba(180, 35, 24, 0.24);
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.attendance-table select,
+.attendance-table input {
+  min-height: 42px;
+}
+
+.attendance-save {
+  margin-top: 16px;
+}
+
 .actions {
   display: flex;
   flex-wrap: wrap;
@@ -1585,6 +1644,11 @@ td small {
   }
 
   .toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-toolbar,
+  .attendance-session-grid {
     grid-template-columns: 1fr;
   }
 
