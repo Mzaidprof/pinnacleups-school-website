@@ -860,6 +860,11 @@ td small {
   background: rgba(180, 35, 24, 0.08);
 }
 
+.attendance-session-grid .closed-session {
+  border-color: rgba(22, 128, 90, 0.24);
+  background: rgba(22, 128, 90, 0.08);
+}
+
 .attendance-table select,
 .attendance-table input {
   min-height: 42px;
@@ -885,6 +890,155 @@ td small {
 .attendance-save-panel .attendance-save {
   flex: 0 0 auto;
   margin: 0;
+}
+
+.admin-attendance-overview {
+  margin-top: 22px;
+}
+
+.attendance-control-card,
+.attendance-completion-panel {
+  padding: 22px;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.8);
+  box-shadow: var(--soft-shadow);
+  backdrop-filter: blur(16px) saturate(1.18);
+  -webkit-backdrop-filter: blur(16px) saturate(1.18);
+}
+
+.attendance-completion-panel {
+  margin-bottom: 18px;
+}
+
+.attendance-completion-panel.closed {
+  border-color: rgba(22, 128, 90, 0.3);
+  background: rgba(244, 252, 248, 0.88);
+}
+
+.attendance-control-head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 18px;
+}
+
+.attendance-control-head h2 {
+  margin: 7px 0 5px;
+  color: var(--navy);
+  font-family: "Playfair Display", serif;
+  font-size: 1.65rem;
+}
+
+.attendance-control-head p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.55;
+}
+
+.completion-metrics {
+  margin: 18px 0;
+  display: grid;
+  grid-template-columns: repeat(6, minmax(100px, 1fr));
+  gap: 10px;
+}
+
+.completion-metrics.compact {
+  grid-template-columns: repeat(4, minmax(100px, 1fr));
+}
+
+.completion-metrics article {
+  min-width: 0;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.completion-metrics span {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 900;
+  text-transform: uppercase;
+}
+
+.completion-metrics strong {
+  display: block;
+  color: var(--navy);
+  font-size: 1.25rem;
+}
+
+.attendance-issue-preview {
+  margin: 0 0 16px;
+  padding: 0;
+  display: grid;
+  gap: 8px;
+  list-style: none;
+}
+
+.attendance-issue-preview li {
+  padding: 11px 12px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-left: 3px solid var(--gold);
+  background: rgba(250, 243, 224, 0.58);
+}
+
+.attendance-issue-preview span,
+.completion-success {
+  color: var(--muted);
+}
+
+.completion-columns {
+  display: grid;
+  grid-template-columns: minmax(360px, 0.7fr) minmax(520px, 1.3fr);
+  gap: 18px;
+}
+
+.completion-columns h3 {
+  margin: 0 0 10px;
+  color: var(--navy);
+  font-size: 1rem;
+}
+
+.completion-table {
+  min-width: 520px;
+}
+
+.attendance-close-form {
+  margin-top: 18px;
+  padding-top: 18px;
+  display: grid;
+  grid-template-columns: minmax(260px, 1fr) auto;
+  align-items: end;
+  gap: 14px;
+  border-top: 1px solid var(--line);
+}
+
+.attendance-close-form .field,
+.attendance-close-form .primary-btn {
+  margin: 0;
+}
+
+.attendance-close-form .message {
+  grid-column: 1 / -1;
+  margin: 0;
+}
+
+.closure-summary {
+  margin-top: 18px;
+  padding: 14px;
+  display: flex;
+  justify-content: space-between;
+  gap: 12px;
+  border: 1px solid rgba(22, 128, 90, 0.2);
+  border-radius: 8px;
+  background: rgba(22, 128, 90, 0.08);
+  color: var(--success);
 }
 
 .actions {
@@ -1725,6 +1879,23 @@ td small {
     width: 100%;
   }
 
+  .completion-metrics,
+  .completion-metrics.compact {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .completion-columns {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-close-form {
+    grid-template-columns: 1fr;
+  }
+
+  .attendance-close-form .primary-btn {
+    width: 100%;
+  }
+
   .module-header {
     align-items: flex-start;
     flex-direction: column;
@@ -1858,6 +2029,13 @@ td small {
   }
 
   .holiday-item {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .attendance-control-head,
+  .attendance-issue-preview li,
+  .closure-summary {
     align-items: flex-start;
     flex-direction: column;
   }
