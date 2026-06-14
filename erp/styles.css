@@ -1389,6 +1389,120 @@ td small {
   gap: 16px;
 }
 
+.password-management-card {
+  margin: 18px 0;
+}
+
+.password-lookup-form {
+  display: grid;
+  grid-template-columns: minmax(220px, 1fr) auto;
+  align-items: end;
+  gap: 12px;
+}
+
+.password-lookup-form .field {
+  margin: 0;
+}
+
+.password-account-panel {
+  margin-top: 18px;
+  padding-top: 18px;
+  border-top: 1px solid var(--line);
+  animation: fadeUp 0.24s var(--ease-apple) both;
+}
+
+.password-account-summary {
+  margin-bottom: 20px;
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.58);
+  overflow: hidden;
+}
+
+.password-account-summary > div {
+  min-width: 0;
+  padding: 14px;
+  border-right: 1px solid var(--line);
+}
+
+.password-account-summary > div:last-child {
+  border-right: 0;
+}
+
+.password-account-summary small,
+.temporary-password-result small {
+  display: block;
+  margin-bottom: 5px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 800;
+}
+
+.password-account-summary strong {
+  display: block;
+  color: var(--navy);
+  overflow-wrap: anywhere;
+}
+
+.password-visibility {
+  width: fit-content;
+  margin: -4px 0 10px;
+  display: flex;
+  align-items: center;
+  gap: 9px;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.password-visibility input {
+  width: 18px;
+  height: 18px;
+  accent-color: var(--navy);
+}
+
+.password-visibility span {
+  margin: 0;
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+}
+
+.password-guidance {
+  font-size: 0.88rem;
+}
+
+.password-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+}
+
+.temporary-password-result {
+  margin-top: 16px;
+  padding: 14px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  border: 1px solid rgba(201, 168, 76, 0.46);
+  border-radius: var(--radius);
+  background: rgba(255, 249, 226, 0.78);
+}
+
+.temporary-password-result strong {
+  display: block;
+  color: var(--navy);
+  font-family: Consolas, "Courier New", monospace;
+  font-size: 1.05rem;
+  overflow-wrap: anywhere;
+}
+
 .weekday-picker {
   margin: 0 0 22px;
   display: grid;
@@ -1921,6 +2035,18 @@ td small {
     grid-template-columns: 1fr;
   }
 
+  .password-account-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .password-account-summary > div:nth-child(2) {
+    border-right: 0;
+  }
+
+  .password-account-summary > div:nth-child(-n + 2) {
+    border-bottom: 1px solid var(--line);
+  }
+
   .child-detail-grid {
     grid-template-columns: 1fr;
   }
@@ -1944,6 +2070,35 @@ td small {
 
   .main {
     padding: 14px;
+  }
+
+  .password-lookup-form {
+    grid-template-columns: 1fr;
+  }
+
+  .password-lookup-form .primary-btn,
+  .password-actions .primary-btn,
+  .password-actions .ghost-btn {
+    width: 100%;
+  }
+
+  .password-account-summary {
+    grid-template-columns: 1fr;
+  }
+
+  .password-account-summary > div,
+  .password-account-summary > div:nth-child(2) {
+    border-right: 0;
+    border-bottom: 1px solid var(--line);
+  }
+
+  .password-account-summary > div:last-child {
+    border-bottom: 0;
+  }
+
+  .temporary-password-result {
+    align-items: stretch;
+    flex-direction: column;
   }
 
   .brand-copy h1 {
