@@ -2837,7 +2837,7 @@ function renderPasswordAccount(account) {
           <input id="ShowAccountPassword" type="checkbox">
           <span>Show the password while typing</span>
         </label>
-        <p class="password-guidance">Use at least 10 characters with uppercase, lowercase, a number, and a symbol.</p>
+        <p class="password-guidance">Use at least 5 characters with uppercase, lowercase, a number, and a symbol.</p>
         <div class="password-actions">
           <button class="primary-btn compact" id="setAccountPasswordButton" type="submit">Set New Password</button>
           <button class="ghost-btn compact" id="generateAccountPasswordButton" type="button">Generate Secure Password</button>
@@ -2932,7 +2932,7 @@ function resetSelectedAccountPassword(request) {
 }
 
 function validateNewAccountPassword(password) {
-  if (password.length < 10) return "Use at least 10 characters.";
+  if (password.length < 5) return "Use at least 5 characters.";
   if (!/[A-Z]/.test(password)) return "Add at least one uppercase letter.";
   if (!/[a-z]/.test(password)) return "Add at least one lowercase letter.";
   if (!/[0-9]/.test(password)) return "Add at least one number.";
