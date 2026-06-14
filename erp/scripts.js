@@ -70,6 +70,7 @@ let teacherState = {
 };
 let settingsState = {
   settings: null,
+  passwordAccount: null,
 };
 let attendanceState = {
   filters: { date: "", grade: "", academicYear: "", session: "Morning" },
@@ -250,6 +251,20 @@ const appsScriptApi = {
 
   removeHoliday(holidayId) {
     return callAppsScript("removeHoliday", { token: getToken(), holidayId });
+  },
+
+  lookupPasswordAccount(username) {
+    return callAppsScript("lookupPasswordAccount", {
+      token: getToken(),
+      username,
+    });
+  },
+
+  resetAccountPassword(request) {
+    return callAppsScript("resetAccountPassword", {
+      token: getToken(),
+      request,
+    });
   },
 };
 
@@ -634,6 +649,55 @@ const mockApi = {
 
   removeHoliday() {
     return delay(() => ({ success: true, holidays: [] }));
+  },
+
+  lookupPasswordAccount(username) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin")
+        throw new Error("Access denied");
+
+      const cleanUsername = String(username || "").trim().toLowerCase();
+      const user = mockUsers.find(
+        (item) => item.username.toLowerCase() === cleanUsername,
+      );
+      if (!user)
+        return { success: false, message: "Account not found." };
+
+      return {
+        success: true,
+        account: {
+          id: user.id,
+          name: user.name,
+          username: user.username,
+          role: user.role,
+          status: "Active",
+        },
+      };
+    });
+  },
+
+  resetAccountPassword(request) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin")
+        throw new Error("Access denied");
+
+      const cleanUsername = String(request.username || "").trim().toLowerCase();
+      const user = mockUsers.find(
+        (item) => item.username.toLowerCase() === cleanUsername,
+      );
+      if (!user)
+        return { success: false, message: "Account not found." };
+
+      const temporaryPassword = request.generate ? "Pup@4821Safe" : "";
+      user.password = temporaryPassword || request.newPassword;
+      return {
+        success: true,
+        message: "Password updated.",
+        temporaryPassword,
+      };
+    });
   },
 };
 
@@ -2574,6 +2638,24 @@ function renderSettingsShell() {
       </section>
     </section>
 
+    <section class="settings-card password-management-card">
+      <div class="settings-card-head">
+        <div>
+          <span>Password Management</span>
+          <p>Find an administrator, teacher, or parent account and issue a new password. For privacy, an existing password can never be displayed.</p>
+        </div>
+      </div>
+      <form class="password-lookup-form" id="passwordLookupForm">
+        <div class="field">
+          <label for="PasswordUsername">Account Username</label>
+          <input id="PasswordUsername" name="username" type="text" autocomplete="off" required>
+        </div>
+        <button class="primary-btn compact" id="lookupPasswordButton" type="submit">Find Account</button>
+      </form>
+      <div class="message" id="passwordLookupMessage" aria-live="polite"></div>
+      <div id="passwordAccountHost"></div>
+    </section>
+
     <section class="settings-card">
       <div class="settings-card-head">
         <div>
@@ -2679,7 +2761,225 @@ function renderSettingsData() {
   document
     .getElementById("holidayForm")
     .addEventListener("submit", submitHolidayForm);
+  document
+    .getElementById("passwordLookupForm")
+    .addEventListener("submit", submitPasswordLookup);
   renderHolidayList(settings.SpecialHolidays || []);
+}
+
+function submitPasswordLookup(event) {
+  event.preventDefault();
+  const username = document.getElementById("PasswordUsername").value.trim();
+  const button = document.getElementById("lookupPasswordButton");
+  const message = document.getElementById("passwordLookupMessage");
+  const host = document.getElementById("passwordAccountHost");
+
+  settingsState.passwordAccount = null;
+  host.innerHTML = "";
+  message.textContent = "";
+  button.disabled = true;
+  button.textContent = "Finding...";
+
+  api
+    .lookupPasswordAccount(username)
+    .then((result) => {
+      button.disabled = false;
+      button.textContent = "Find Account";
+      if (!result.success) {
+        message.textContent = result.message || "Account not found.";
+        return;
+      }
+      settingsState.passwordAccount = result.account;
+      renderPasswordAccount(result.account);
+    })
+    .catch((error) => {
+      console.error(error);
+      button.disabled = false;
+      button.textContent = "Find Account";
+      message.textContent = "Unable to find this account.";
+    });
+}
+
+function renderPasswordAccount(account) {
+  const host = document.getElementById("passwordAccountHost");
+  host.innerHTML = `
+    <div class="password-account-panel">
+      <div class="password-account-summary">
+        <div>
+          <small>Account holder</small>
+          <strong>${escapeHtml(account.name || account.username)}</strong>
+        </div>
+        <div>
+          <small>Username</small>
+          <strong>${escapeHtml(account.username)}</strong>
+        </div>
+        <div>
+          <small>Account type</small>
+          <strong>${escapeHtml(account.role)}</strong>
+        </div>
+        <div>
+          <small>Status</small>
+          <strong>${escapeHtml(account.status || "Active")}</strong>
+        </div>
+      </div>
+      <form id="passwordResetForm">
+        <div class="form-grid">
+          <div class="field">
+            <label for="NewAccountPassword">New Password</label>
+            <input id="NewAccountPassword" type="password" autocomplete="new-password">
+          </div>
+          <div class="field">
+            <label for="ConfirmAccountPassword">Confirm Password</label>
+            <input id="ConfirmAccountPassword" type="password" autocomplete="new-password">
+          </div>
+        </div>
+        <label class="password-visibility">
+          <input id="ShowAccountPassword" type="checkbox">
+          <span>Show the password while typing</span>
+        </label>
+        <p class="password-guidance">Use at least 10 characters with uppercase, lowercase, a number, and a symbol.</p>
+        <div class="password-actions">
+          <button class="primary-btn compact" id="setAccountPasswordButton" type="submit">Set New Password</button>
+          <button class="ghost-btn compact" id="generateAccountPasswordButton" type="button">Generate Secure Password</button>
+        </div>
+        <div class="message" id="passwordResetMessage" aria-live="polite"></div>
+        <div id="temporaryPasswordHost"></div>
+      </form>
+    </div>
+  `;
+
+  document
+    .getElementById("passwordResetForm")
+    .addEventListener("submit", submitManualPasswordReset);
+  document
+    .getElementById("generateAccountPasswordButton")
+    .addEventListener("click", generateTemporaryPassword);
+  document
+    .getElementById("ShowAccountPassword")
+    .addEventListener("change", toggleAccountPasswordVisibility);
+}
+
+function toggleAccountPasswordVisibility(event) {
+  const type = event.currentTarget.checked ? "text" : "password";
+  document.getElementById("NewAccountPassword").type = type;
+  document.getElementById("ConfirmAccountPassword").type = type;
+}
+
+function submitManualPasswordReset(event) {
+  event.preventDefault();
+  const password = document.getElementById("NewAccountPassword").value;
+  const confirmation = document.getElementById("ConfirmAccountPassword").value;
+  const message = document.getElementById("passwordResetMessage");
+  const validationMessage = validateNewAccountPassword(password);
+
+  message.textContent = "";
+  document.getElementById("temporaryPasswordHost").innerHTML = "";
+  if (validationMessage) {
+    message.textContent = validationMessage;
+    return;
+  }
+  if (password !== confirmation) {
+    message.textContent = "The two passwords do not match.";
+    return;
+  }
+
+  resetSelectedAccountPassword({ newPassword: password, generate: false });
+}
+
+function generateTemporaryPassword() {
+  resetSelectedAccountPassword({ generate: true });
+}
+
+function resetSelectedAccountPassword(request) {
+  const account = settingsState.passwordAccount;
+  if (!account) return;
+
+  const confirmationText = request.generate
+    ? `Generate a new secure password for ${account.name || account.username}?`
+    : `Replace the password for ${account.name || account.username}?`;
+  if (!window.confirm(`${confirmationText} Other signed-in sessions for this account will end.`))
+    return;
+
+  const manualButton = document.getElementById("setAccountPasswordButton");
+  const generateButton = document.getElementById("generateAccountPasswordButton");
+  const message = document.getElementById("passwordResetMessage");
+  manualButton.disabled = true;
+  generateButton.disabled = true;
+  message.textContent = "Updating password...";
+
+  api
+    .resetAccountPassword({ ...request, username: account.username })
+    .then((result) => {
+      manualButton.disabled = false;
+      generateButton.disabled = false;
+      if (!result.success) {
+        message.textContent = result.message || "Unable to update password.";
+        return;
+      }
+
+      document.getElementById("passwordResetForm").reset();
+      togglePasswordInputsToHidden();
+      message.textContent =
+        "Password updated. Other signed-in sessions for this account have ended.";
+      renderTemporaryPassword(result.temporaryPassword);
+    })
+    .catch((error) => {
+      console.error(error);
+      manualButton.disabled = false;
+      generateButton.disabled = false;
+      message.textContent = "Unable to update password.";
+    });
+}
+
+function validateNewAccountPassword(password) {
+  if (password.length < 10) return "Use at least 10 characters.";
+  if (!/[A-Z]/.test(password)) return "Add at least one uppercase letter.";
+  if (!/[a-z]/.test(password)) return "Add at least one lowercase letter.";
+  if (!/[0-9]/.test(password)) return "Add at least one number.";
+  if (!/[^A-Za-z0-9]/.test(password)) return "Add at least one symbol.";
+  if (/\s/.test(password)) return "Passwords cannot contain spaces.";
+  return "";
+}
+
+function togglePasswordInputsToHidden() {
+  document.getElementById("NewAccountPassword").type = "password";
+  document.getElementById("ConfirmAccountPassword").type = "password";
+}
+
+function renderTemporaryPassword(password) {
+  const host = document.getElementById("temporaryPasswordHost");
+  if (!password) {
+    host.innerHTML = "";
+    return;
+  }
+  host.innerHTML = `
+    <div class="temporary-password-result">
+      <div>
+        <small>New secure password - shown only now</small>
+        <strong id="temporaryPasswordValue">${escapeHtml(password)}</strong>
+      </div>
+      <button class="ghost-btn compact" id="copyTemporaryPasswordButton" type="button">Copy</button>
+    </div>
+  `;
+  document
+    .getElementById("copyTemporaryPasswordButton")
+    .addEventListener("click", () => copyTemporaryPassword(password));
+}
+
+function copyTemporaryPassword(password) {
+  const button = document.getElementById("copyTemporaryPasswordButton");
+  navigator.clipboard
+    .writeText(password)
+    .then(() => {
+      button.textContent = "Copied";
+      window.setTimeout(() => {
+        button.textContent = "Copy";
+      }, 1600);
+    })
+    .catch(() => {
+      document.getElementById("temporaryPasswordValue").focus?.();
+      button.textContent = "Select and copy";
+    });
 }
 
 function submitSettingsForm(event) {
