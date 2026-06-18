@@ -672,11 +672,16 @@ button {
 
 .teacher-accountability-card {
   margin-top: 22px;
-  padding: 22px;
+  padding: 24px;
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(160px, 0.55fr);
-  gap: 18px;
+  gap: 20px;
   align-items: stretch;
+  border-color: rgba(232, 201, 122, 0.28);
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.86), rgba(248, 250, 252, 0.68)),
+    radial-gradient(circle at 8% 18%, rgba(232, 201, 122, 0.22), transparent 34%),
+    radial-gradient(circle at 88% 14%, rgba(26, 26, 78, 0.13), transparent 32%);
 }
 
 .teacher-accountability-loading {
@@ -714,21 +719,28 @@ button {
 .class-chip-row {
   display: flex;
   flex-wrap: wrap;
+  align-items: center;
   gap: 10px;
   margin-top: 16px;
 }
 
 .class-chip {
-  display: inline-flex;
+  display: inline-grid;
   min-height: 36px;
   align-items: center;
+  justify-content: center;
   padding: 0 14px;
   border: 1px solid rgba(232, 201, 122, 0.52);
   border-radius: 999px;
-  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 201, 122, 0.22));
+  background:
+    linear-gradient(135deg, rgba(255, 255, 255, 0.96), rgba(232, 201, 122, 0.22)),
+    linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.62), transparent);
   color: var(--navy);
   font-size: 0.9rem;
   font-weight: 900;
+  line-height: 1;
+  text-align: center;
+  white-space: nowrap;
   box-shadow: 0 10px 24px rgba(26, 26, 78, 0.08);
 }
 
@@ -787,30 +799,69 @@ button {
 .teacher-class-counts {
   grid-column: 1 / -1;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 10px;
+  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  gap: 12px;
 }
 
 .class-count-item {
-  display: flex;
-  min-height: 48px;
+  display: grid;
+  min-height: 118px;
   align-items: center;
-  justify-content: space-between;
-  gap: 12px;
-  padding: 12px 14px;
-  border: 1px solid var(--line);
-  border-radius: 14px;
-  background: rgba(255, 255, 255, 0.72);
+  justify-items: center;
+  gap: 7px;
+  padding: 16px 14px;
+  border: 1px solid rgba(232, 201, 122, 0.34);
+  border-radius: 18px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.74)),
+    radial-gradient(circle at 50% 0%, rgba(232, 201, 122, 0.18), transparent 52%);
+  box-shadow: 0 16px 34px rgba(26, 26, 78, 0.08);
+  text-align: center;
+  position: relative;
+  overflow: hidden;
+}
+
+.class-count-item::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+  transform: translateX(-115%);
+  transition: transform 0.7s var(--ease-apple);
+  pointer-events: none;
+}
+
+.class-count-item:hover::after {
+  transform: translateX(115%);
 }
 
 .class-count-item span {
   color: var(--muted);
-  font-weight: 800;
+  font-size: 0.82rem;
+  font-weight: 900;
+  letter-spacing: 0.07em;
+  line-height: 1.15;
+  text-transform: uppercase;
+  position: relative;
+  z-index: 1;
 }
 
 .class-count-item strong {
   color: var(--navy);
-  font-size: 1.25rem;
+  font-family: "Playfair Display", serif;
+  font-size: 2.45rem;
+  line-height: 0.95;
+  letter-spacing: 0;
+  position: relative;
+  z-index: 1;
+}
+
+.class-count-item small {
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 800;
+  position: relative;
+  z-index: 1;
 }
 
 .class-count-item.empty {
