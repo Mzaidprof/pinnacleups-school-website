@@ -100,7 +100,7 @@ const mockUsers = [
     username: "teacher",
     password: "teacher123",
     role: "Teacher",
-    grades: ["3", "4"],
+    grades: ["5", "4", "3", "2", "1"],
   },
   {
     id: "MOCK-P001",
@@ -621,22 +621,21 @@ const mockApi = {
         counts[gradeName] = (counts[gradeName] || 0) + 1;
         return counts;
       }, {});
+      const assignedClasses = canViewAll
+        ? uniqueValues(mockStudents, "Grade")
+        : teacherGrades;
 
       return {
         success: true,
         summary: {
           teacherName: session.user.name || "",
-          assignedClasses: canViewAll
-            ? uniqueValues(mockStudents, "Grade")
-            : teacherGrades,
+          assignedClasses,
           canViewAll,
           totalActiveStudents: visibleStudents.length,
-          classCounts: Object.keys(classCounts)
-            .sort()
-            .map((gradeName) => ({
-              grade: gradeName,
-              count: classCounts[gradeName],
-            })),
+          classCounts: assignedClasses.map((gradeName) => ({
+            grade: gradeName,
+            count: classCounts[gradeName] || 0,
+          })),
         },
       };
     });
@@ -1163,6 +1162,7 @@ function renderTeacherDashboardSummary() {
         <div class="class-count-item">
           <span>${escapeHtml(formatGradeLabel(item.grade))}</span>
           <strong>${escapeHtml(item.count)}</strong>
+          <small>${Number(item.count) === 1 ? "active child" : "active children"}</small>
         </div>
       `,
     )
