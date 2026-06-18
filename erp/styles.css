@@ -670,6 +670,153 @@ button {
   line-height: 1.7;
 }
 
+.teacher-accountability-card {
+  margin-top: 22px;
+  padding: 22px;
+  display: grid;
+  grid-template-columns: minmax(0, 1.4fr) minmax(160px, 0.55fr);
+  gap: 18px;
+  align-items: stretch;
+}
+
+.teacher-accountability-loading {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.teacher-accountability-copy span,
+.teacher-accountability-total span {
+  display: block;
+  margin-bottom: 8px;
+  color: var(--muted);
+  font-size: 0.78rem;
+  font-weight: 900;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+}
+
+.teacher-accountability-copy h2 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-family: "Playfair Display", serif;
+  font-size: clamp(1.55rem, 3vw, 2.2rem);
+  line-height: 1.05;
+  letter-spacing: 0;
+}
+
+.teacher-accountability-copy p {
+  max-width: 620px;
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+
+.class-chip-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 10px;
+  margin-top: 16px;
+}
+
+.class-chip {
+  display: inline-flex;
+  min-height: 36px;
+  align-items: center;
+  padding: 0 14px;
+  border: 1px solid rgba(232, 201, 122, 0.52);
+  border-radius: 999px;
+  background: linear-gradient(135deg, rgba(255, 255, 255, 0.92), rgba(232, 201, 122, 0.22));
+  color: var(--navy);
+  font-size: 0.9rem;
+  font-weight: 900;
+  box-shadow: 0 10px 24px rgba(26, 26, 78, 0.08);
+}
+
+.class-chip.muted {
+  color: var(--muted);
+}
+
+.teacher-accountability-total {
+  display: flex;
+  min-height: 156px;
+  flex-direction: column;
+  justify-content: center;
+  padding: 18px;
+  border: 1px solid rgba(255, 255, 255, 0.56);
+  border-radius: var(--radius);
+  background:
+    linear-gradient(135deg, rgba(26, 26, 78, 0.96), rgba(42, 42, 110, 0.86)),
+    url("https://pinnacleups.com/Images/gallery1.jpg") center/cover no-repeat;
+  color: var(--white);
+  box-shadow: var(--soft-shadow);
+  overflow: hidden;
+  position: relative;
+}
+
+.teacher-accountability-total::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.2), transparent 42%, rgba(232, 201, 122, 0.16));
+  pointer-events: none;
+}
+
+.teacher-accountability-total span,
+.teacher-accountability-total strong,
+.teacher-accountability-total small {
+  position: relative;
+  z-index: 1;
+}
+
+.teacher-accountability-total span {
+  color: rgba(255, 255, 255, 0.72);
+}
+
+.teacher-accountability-total strong {
+  font-size: clamp(2.8rem, 6vw, 4.4rem);
+  line-height: 0.95;
+  letter-spacing: 0;
+}
+
+.teacher-accountability-total small {
+  margin-top: 8px;
+  color: #e5e5f0;
+  font-weight: 700;
+}
+
+.teacher-class-counts {
+  grid-column: 1 / -1;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 10px;
+}
+
+.class-count-item {
+  display: flex;
+  min-height: 48px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  padding: 12px 14px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: rgba(255, 255, 255, 0.72);
+}
+
+.class-count-item span {
+  color: var(--muted);
+  font-weight: 800;
+}
+
+.class-count-item strong {
+  color: var(--navy);
+  font-size: 1.25rem;
+}
+
+.class-count-item.empty {
+  justify-content: center;
+}
+
 .module-header {
   padding: 24px;
   display: flex;
@@ -2047,6 +2194,14 @@ td small {
     border-bottom: 1px solid var(--line);
   }
 
+  .teacher-accountability-card {
+    grid-template-columns: 1fr;
+  }
+
+  .teacher-accountability-total {
+    min-height: 132px;
+  }
+
   .child-detail-grid {
     grid-template-columns: 1fr;
   }
@@ -2064,8 +2219,23 @@ td small {
 
   .login-brand,
   .login-card,
-  .dashboard-hero {
+  .dashboard-hero,
+  .teacher-accountability-card {
     padding: 22px;
+  }
+
+  .class-chip-row {
+    gap: 8px;
+  }
+
+  .class-chip {
+    min-height: 34px;
+    padding: 0 12px;
+    font-size: 0.84rem;
+  }
+
+  .teacher-class-counts {
+    grid-template-columns: 1fr;
   }
 
   .main {
