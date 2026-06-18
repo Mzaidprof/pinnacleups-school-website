@@ -83,6 +83,7 @@ let attendanceState = {
   permissions: { canView: false, canMark: false },
 };
 let adminAttendanceOverview = null;
+let teacherDashboardSummary = null;
 let mockAttendanceClosed = false;
 
 const mockUsers = [
@@ -99,6 +100,7 @@ const mockUsers = [
     username: "teacher",
     password: "teacher123",
     role: "Teacher",
+    grades: ["3", "4"],
   },
   {
     id: "MOCK-P001",
@@ -224,6 +226,10 @@ const appsScriptApi = {
 
   listTeachers(filters) {
     return callAppsScript("listTeachers", { token: getToken(), filters });
+  },
+
+  getTeacherDashboardSummary() {
+    return callAppsScript("getTeacherDashboardSummary", { token: getToken() });
   },
 
   saveTeacher(teacher) {
@@ -372,6 +378,18 @@ const mockApi = {
         students = students.filter(
           (student) => student.ParentPhone === session.user.phone,
         );
+      }
+
+      if (session.user.role === "Teacher") {
+        const teacherGrades = session.user.grades || [];
+        const canViewAll = teacherGrades.some(
+          (gradeItem) => String(gradeItem).trim().toLowerCase() === "all",
+        );
+        students = canViewAll
+          ? students
+          : students.filter((student) =>
+              teacherGrades.includes(String(student.Grade || "").trim()),
+            );
       }
 
       if (search) {
@@ -576,6 +594,50 @@ const mockApi = {
         permissions: { canAdd: true, canEdit: true, canDeactivate: true },
         grades: uniqueGradeCsvValues(mockTeachers),
         statuses: uniqueValues(mockTeachers, "Status"),
+      };
+    });
+  },
+
+  getTeacherDashboardSummary() {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Teacher")
+        throw new Error("Access denied");
+
+      const teacherGrades = session.user.grades || [];
+      const canViewAll = teacherGrades.some(
+        (gradeItem) => String(gradeItem).trim().toLowerCase() === "all",
+      );
+      const activeStudents = mockStudents.filter(
+        (student) => student.Status === "Active",
+      );
+      const visibleStudents = canViewAll
+        ? activeStudents
+        : activeStudents.filter((student) =>
+            teacherGrades.includes(String(student.Grade || "").trim()),
+          );
+      const classCounts = visibleStudents.reduce((counts, student) => {
+        const gradeName = student.Grade || "Not set";
+        counts[gradeName] = (counts[gradeName] || 0) + 1;
+        return counts;
+      }, {});
+
+      return {
+        success: true,
+        summary: {
+          teacherName: session.user.name || "",
+          assignedClasses: canViewAll
+            ? uniqueValues(mockStudents, "Grade")
+            : teacherGrades,
+          canViewAll,
+          totalActiveStudents: visibleStudents.length,
+          classCounts: Object.keys(classCounts)
+            .sort()
+            .map((gradeName) => ({
+              grade: gradeName,
+              count: classCounts[gradeName],
+            })),
+        },
       };
     });
   },
@@ -930,6 +992,8 @@ function renderDashboard(user, route, moduleName = "dashboard") {
   if (moduleName === "settings") loadSettings();
   if (moduleName === "dashboard" && user.role === "Admin")
     loadAdminAttendanceOverview();
+  if (moduleName === "dashboard" && user.role === "Teacher")
+    loadTeacherDashboardSummary();
 }
 
 function renderMobileNav(route, user, moduleName) {
@@ -1026,6 +1090,15 @@ function renderDashboardHome(user) {
     `
         : ""
     }
+    ${
+      user.role === "Teacher"
+        ? `
+      <section class="teacher-accountability-card portal-card" id="teacherAccountabilityCard">
+        <div class="teacher-accountability-loading">Loading assigned classes...</div>
+      </section>
+    `
+        : ""
+    }
     <section class="info-grid">
       <article class="info-card portal-card">
         <span>Admissions Open</span>
@@ -1047,6 +1120,69 @@ function renderDashboardHome(user) {
       <span>Campus Note</span>
       <p>Pinnacle Upper Primary School is preparing a smooth, organized start to the academic year with renewed focus on discipline, creativity, sports, and joyful learning.</p>
     </section>
+  `;
+}
+
+function loadTeacherDashboardSummary() {
+  const host = document.getElementById("teacherAccountabilityCard");
+  if (!host) return;
+
+  api
+    .getTeacherDashboardSummary()
+    .then((result) => {
+      if (!result.success) {
+        host.innerHTML = `<div class="message">${escapeHtml(result.message || "Unable to load assigned classes")}</div>`;
+        return;
+      }
+      teacherDashboardSummary = result.summary;
+      renderTeacherDashboardSummary();
+    })
+    .catch((error) => {
+      console.error(error);
+      host.innerHTML =
+        '<div class="message">Unable to load assigned classes right now.</div>';
+    });
+}
+
+function renderTeacherDashboardSummary() {
+  const host = document.getElementById("teacherAccountabilityCard");
+  const summary = teacherDashboardSummary;
+  if (!host || !summary) return;
+
+  const assignedClasses = summary.canViewAll
+    ? ["All Classes"]
+    : summary.assignedClasses || [];
+  const classChips = assignedClasses.length
+    ? assignedClasses
+        .map((grade) => `<span class="class-chip">${escapeHtml(formatGradeLabel(grade))}</span>`)
+        .join("")
+    : '<span class="class-chip muted">No class assigned</span>';
+  const classCounts = (summary.classCounts || [])
+    .map(
+      (item) => `
+        <div class="class-count-item">
+          <span>${escapeHtml(formatGradeLabel(item.grade))}</span>
+          <strong>${escapeHtml(item.count)}</strong>
+        </div>
+      `,
+    )
+    .join("");
+
+  host.innerHTML = `
+    <div class="teacher-accountability-copy">
+      <span>Class Responsibility</span>
+      <h2>Your assigned classes</h2>
+      <p>These are the active student groups currently connected to your teacher account.</p>
+      <div class="class-chip-row">${classChips}</div>
+    </div>
+    <div class="teacher-accountability-total">
+      <span>Active Children</span>
+      <strong>${escapeHtml(summary.totalActiveStudents || 0)}</strong>
+      <small>Total children under your care</small>
+    </div>
+    <div class="teacher-class-counts">
+      ${classCounts || '<div class="class-count-item empty"><span>No active students found</span></div>'}
+    </div>
   `;
 }
 
@@ -3185,6 +3321,8 @@ function toPublicUser(user) {
     id: user.id,
     name: user.name,
     phone: user.phone || "",
+    grades: user.grades || [],
+    studentIds: user.studentIds || [],
     username: user.username,
     role: user.role,
   };
@@ -3210,6 +3348,16 @@ function splitCsv(value) {
     .split(",")
     .map((item) => item.trim())
     .filter(Boolean);
+}
+
+function formatGradeLabel(value) {
+  const grade = String(value || "").trim();
+  if (!grade) return "Not set";
+  if (grade.toLowerCase() === "all classes") return "All Classes";
+  if (grade.toLowerCase() === "all") return "All Classes";
+  if (grade.toLowerCase() === "nursery") return "Nursery";
+  if (/^(lkg|ukg)$/i.test(grade)) return grade.toUpperCase();
+  return `Class ${grade}`;
 }
 
 function normalizeTimeValue(value) {
