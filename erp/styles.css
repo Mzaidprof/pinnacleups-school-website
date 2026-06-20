@@ -689,7 +689,7 @@ button {
   font-weight: 800;
 }
 
-.teacher-accountability-copy span,
+.teacher-section-label,
 .teacher-accountability-total span {
   display: block;
   margin-bottom: 8px;
@@ -730,6 +730,7 @@ button {
   height: 38px;
   align-items: center;
   justify-content: center;
+  margin: 0;
   padding: 0 16px;
   border: 1px solid rgba(232, 201, 122, 0.52);
   border-radius: 999px;
@@ -744,10 +745,19 @@ button {
   white-space: nowrap;
   box-shadow: 0 10px 24px rgba(26, 26, 78, 0.08);
   vertical-align: middle;
+  transform: translateY(0);
 }
 
 .class-chip.muted {
   color: var(--muted);
+}
+
+.class-chip-row .class-chip {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  margin-bottom: 0;
+  line-height: 38px;
 }
 
 .teacher-accountability-total {
