@@ -1170,7 +1170,7 @@ function renderTeacherDashboardSummary() {
 
   host.innerHTML = `
     <div class="teacher-accountability-copy">
-      <span>Class Responsibility</span>
+      <span class="teacher-section-label">Class Responsibility</span>
       <h2>Your assigned classes</h2>
       <p>These are the active student groups currently connected to your teacher account.</p>
       <div class="class-chip-row">${classChips}</div>
