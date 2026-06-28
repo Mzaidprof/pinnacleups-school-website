@@ -22,6 +22,612 @@
   --radius-lg: 20px;
 }
 
+/* Operational modules: Fees, Notifications, and Academic Calendar */
+.field textarea {
+  width: 100%;
+  min-height: 112px;
+  padding: 14px 16px;
+  resize: vertical;
+  border: 1px solid var(--line);
+  border-radius: var(--radius);
+  outline: none;
+  color: var(--text);
+  background: rgba(255, 255, 255, 0.84);
+  font: inherit;
+  line-height: 1.55;
+  transition: border-color 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple), background 0.22s var(--ease-apple);
+}
+
+.field textarea:focus {
+  border-color: var(--gold);
+  background: var(--white);
+  box-shadow: 0 0 0 4px rgba(201, 168, 76, 0.14);
+}
+
+.field-hint,
+.form-note {
+  display: block;
+  color: var(--muted);
+  font-size: 0.82rem;
+  line-height: 1.5;
+}
+
+.form-note {
+  margin: 2px 0 16px;
+  padding: 12px 14px;
+  border-left: 3px solid var(--gold);
+  border-radius: 0 var(--radius) var(--radius) 0;
+  background: var(--gold-pale);
+}
+
+.compact-form,
+.notice-form,
+.calendar-form {
+  width: min(680px, calc(100vw - 28px));
+  max-height: min(88vh, 800px);
+  overflow-y: auto;
+}
+
+.fee-toolbar {
+  grid-template-columns: minmax(220px, 1.6fr) repeat(3, minmax(150px, 0.7fr));
+}
+
+.notification-toolbar {
+  grid-template-columns: minmax(240px, 1.8fr) repeat(2, minmax(170px, 0.7fr));
+}
+
+.calendar-toolbar {
+  grid-template-columns: repeat(3, minmax(180px, 1fr));
+}
+
+.financial-summary-grid,
+.calendar-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 14px;
+  margin-bottom: 18px;
+}
+
+.calendar-summary-grid {
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+}
+
+.financial-metric {
+  position: relative;
+  min-height: 128px;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(26, 26, 78, 0.08);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.82);
+  box-shadow: var(--soft-shadow);
+  backdrop-filter: blur(18px) saturate(140%);
+  animation: fadeUp 0.34s var(--ease-apple) both;
+}
+
+.financial-metric::after {
+  position: absolute;
+  width: 120px;
+  height: 120px;
+  right: -48px;
+  bottom: -64px;
+  border-radius: 50%;
+  background: rgba(201, 168, 76, 0.12);
+  content: "";
+}
+
+.financial-metric span,
+.financial-metric small,
+.financial-metric strong {
+  position: relative;
+  z-index: 1;
+  display: block;
+}
+
+.financial-metric span {
+  margin-bottom: 12px;
+  color: var(--muted);
+  font-size: 0.76rem;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: uppercase;
+}
+
+.financial-metric strong {
+  margin-bottom: 8px;
+  color: var(--navy);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.75rem;
+  line-height: 1.1;
+}
+
+.financial-metric small {
+  color: var(--muted);
+}
+
+.financial-metric.positive {
+  border-color: rgba(22, 128, 90, 0.2);
+}
+
+.financial-metric.positive::after {
+  background: rgba(22, 128, 90, 0.1);
+}
+
+.financial-metric.warning,
+.financial-metric.holiday {
+  border-color: rgba(180, 35, 24, 0.16);
+}
+
+.financial-metric.warning::after,
+.financial-metric.holiday::after {
+  background: rgba(180, 35, 24, 0.08);
+}
+
+.fee-account-grid,
+.notice-feed,
+.calendar-agenda {
+  display: grid;
+  gap: 14px;
+}
+
+.fee-account-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.fee-account-card {
+  position: relative;
+  padding: 20px;
+  overflow: hidden;
+  border: 1px solid rgba(26, 26, 78, 0.09);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--soft-shadow);
+  animation: fadeUp 0.36s var(--ease-apple) both;
+  transition: transform 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple), border-color 0.22s var(--ease-apple);
+}
+
+.fee-account-card:hover {
+  transform: translateY(-3px);
+  border-color: rgba(201, 168, 76, 0.45);
+  box-shadow: var(--shadow);
+}
+
+.fee-account-head {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+}
+
+.fee-account-head > div:nth-child(2) {
+  min-width: 0;
+  flex: 1;
+}
+
+.fee-account-head h2,
+.calendar-event-content h2,
+.notice-content h2 {
+  margin: 3px 0 4px;
+  color: var(--navy);
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.3rem;
+  line-height: 1.25;
+}
+
+.fee-account-head p,
+.fee-account-head span {
+  margin: 0;
+  color: var(--muted);
+  font-size: 0.82rem;
+}
+
+.fee-student-avatar {
+  display: flex;
+  width: 52px;
+  height: 52px;
+  flex: 0 0 52px;
+  align-items: center;
+  justify-content: center;
+  overflow: hidden;
+  border: 2px solid rgba(201, 168, 76, 0.4);
+  border-radius: 50%;
+  color: var(--navy);
+  background: var(--gold-pale);
+  font-weight: 800;
+}
+
+.fee-student-avatar img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+}
+
+.fee-progress {
+  height: 7px;
+  margin: 20px 0 16px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: #ececf3;
+}
+
+.fee-progress span {
+  display: block;
+  height: 100%;
+  border-radius: inherit;
+  background: linear-gradient(90deg, var(--navy-mid), var(--gold));
+  transition: width 0.7s var(--ease-apple);
+}
+
+.fee-amounts {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+}
+
+.fee-amounts div {
+  min-width: 0;
+}
+
+.fee-amounts small,
+.fee-amounts strong {
+  display: block;
+}
+
+.fee-amounts small {
+  margin-bottom: 4px;
+  color: var(--muted);
+  font-size: 0.72rem;
+}
+
+.fee-amounts strong {
+  color: var(--navy);
+  font-size: 0.98rem;
+  overflow-wrap: anywhere;
+}
+
+.fee-card-foot {
+  display: flex;
+  margin-top: 18px;
+  padding-top: 16px;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+  border-top: 1px solid var(--line);
+}
+
+.fee-card-foot > span {
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.fee-actions,
+.notice-actions {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.fee-detail-modal {
+  width: min(680px, calc(100vw - 28px));
+}
+
+.fee-detail-balance {
+  display: flex;
+  margin: 16px 0;
+  padding: 16px;
+  align-items: center;
+  justify-content: space-between;
+  border-radius: var(--radius);
+  color: var(--white);
+  background: var(--navy);
+}
+
+.fee-detail-balance strong {
+  font-size: 1.3rem;
+}
+
+.receipt-list {
+  display: grid;
+  gap: 10px;
+}
+
+.receipt-list article {
+  display: flex;
+  padding: 14px 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 16px;
+  border-bottom: 1px solid var(--line);
+}
+
+.receipt-list article > div:last-child {
+  text-align: right;
+}
+
+.receipt-list strong,
+.receipt-list span,
+.receipt-list small {
+  display: block;
+}
+
+.receipt-list strong {
+  color: var(--navy);
+  font-size: 1.08rem;
+}
+
+.receipt-list span,
+.receipt-list small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.78rem;
+}
+
+.empty-state {
+  padding: 54px 24px;
+  border: 1px dashed rgba(26, 26, 78, 0.18);
+  border-radius: var(--radius);
+  text-align: center;
+  background: rgba(255, 255, 255, 0.62);
+}
+
+.empty-state h2 {
+  margin: 0 0 8px;
+  color: var(--navy);
+  font-family: "Playfair Display", Georgia, serif;
+}
+
+.empty-state p {
+  margin: 0;
+  color: var(--muted);
+}
+
+.notice-feed-card,
+.calendar-event-card {
+  display: grid;
+  grid-template-columns: 76px minmax(0, 1fr) auto;
+  gap: 18px;
+  padding: 20px;
+  align-items: start;
+  border: 1px solid rgba(26, 26, 78, 0.09);
+  border-radius: var(--radius);
+  background: rgba(255, 255, 255, 0.86);
+  box-shadow: var(--soft-shadow);
+  animation: fadeUp 0.34s var(--ease-apple) both;
+  transition: transform 0.22s var(--ease-apple), box-shadow 0.22s var(--ease-apple);
+}
+
+.notice-feed-card:hover,
+.calendar-event-card:hover {
+  transform: translateY(-2px);
+  box-shadow: var(--shadow);
+}
+
+.notice-date-tile,
+.calendar-date-block {
+  display: flex;
+  min-height: 78px;
+  padding: 10px;
+  align-items: center;
+  justify-content: center;
+  flex-direction: column;
+  border: 1px solid rgba(201, 168, 76, 0.36);
+  border-radius: var(--radius);
+  color: var(--navy);
+  background: var(--gold-pale);
+}
+
+.notice-date-tile strong,
+.calendar-date-block strong {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 1.55rem;
+  line-height: 1;
+}
+
+.notice-date-tile span,
+.calendar-date-block span {
+  margin-top: 5px;
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.calendar-date-block small {
+  margin-top: 3px;
+  color: var(--muted);
+  font-size: 0.66rem;
+}
+
+.notice-meta,
+.calendar-event-meta {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  color: var(--muted);
+  font-size: 0.75rem;
+}
+
+.notice-priority,
+.calendar-type-badge,
+.managed-label {
+  display: inline-flex;
+  min-height: 26px;
+  padding: 5px 9px;
+  align-items: center;
+  border-radius: 999px;
+  color: var(--navy);
+  background: var(--gold-pale);
+  font-size: 0.7rem;
+  font-weight: 800;
+}
+
+.priority-urgent {
+  border-left: 4px solid var(--danger);
+}
+
+.priority-important {
+  border-left: 4px solid var(--gold);
+}
+
+.notice-content p,
+.calendar-event-content p {
+  margin: 7px 0;
+  color: #45455f;
+  line-height: 1.6;
+  white-space: pre-line;
+}
+
+.notice-content > small,
+.calendar-event-content > small {
+  color: var(--muted);
+  font-size: 0.76rem;
+}
+
+.audience-note {
+  display: flex;
+  min-height: 76px;
+  padding: 14px;
+  align-items: center;
+  border: 1px dashed rgba(26, 26, 78, 0.16);
+  border-radius: var(--radius);
+  color: var(--muted);
+  background: rgba(247, 247, 251, 0.8);
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.calendar-event-card {
+  grid-template-columns: 84px minmax(0, 1fr) auto;
+}
+
+.calendar-event-card.type-holiday {
+  border-left: 4px solid var(--danger);
+}
+
+.calendar-event-card.type-exam,
+.calendar-event-card.type-deadline {
+  border-left: 4px solid var(--gold);
+}
+
+.calendar-event-card.type-activity,
+.calendar-event-card.type-event {
+  border-left: 4px solid var(--success);
+}
+
+.attendance-link-note {
+  display: inline-flex;
+  margin-top: 10px;
+  padding: 7px 10px;
+  border-radius: 999px;
+  color: #8a261e;
+  background: #fff0ee;
+  font-size: 0.74rem;
+  font-weight: 700;
+}
+
+.calendar-holiday-guidance {
+  color: #7b5412;
+}
+
+@media (max-width: 1050px) {
+  .financial-summary-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .fee-account-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-toolbar,
+  .notification-toolbar {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .financial-summary-grid,
+  .calendar-summary-grid {
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+  }
+
+  .financial-metric {
+    min-height: 112px;
+    padding: 16px;
+  }
+
+  .financial-metric strong {
+    font-size: 1.35rem;
+  }
+
+  .fee-toolbar,
+  .notification-toolbar,
+  .calendar-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .fee-account-card,
+  .notice-feed-card,
+  .calendar-event-card {
+    padding: 16px;
+  }
+
+  .fee-account-head {
+    align-items: flex-start;
+    flex-wrap: wrap;
+  }
+
+  .fee-account-head .status-pill {
+    margin-left: 66px;
+  }
+
+  .fee-amounts {
+    gap: 6px;
+  }
+
+  .fee-card-foot,
+  .receipt-list article {
+    align-items: flex-start;
+    flex-direction: column;
+  }
+
+  .fee-actions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+
+  .receipt-list article > div:last-child {
+    text-align: left;
+  }
+
+  .notice-feed-card,
+  .calendar-event-card {
+    grid-template-columns: 62px minmax(0, 1fr);
+    gap: 12px;
+  }
+
+  .notice-date-tile,
+  .calendar-date-block {
+    min-height: 68px;
+    padding: 8px;
+  }
+
+  .notice-actions,
+  .calendar-event-card > .notice-actions,
+  .managed-label {
+    grid-column: 1 / -1;
+    justify-content: flex-start;
+  }
+
+  .compact-form,
+  .notice-form,
+  .calendar-form {
+    width: min(100%, calc(100vw - 20px));
+    max-height: 92vh;
+    padding: 18px;
+  }
+}
+
 @keyframes fadeUp {
   from {
     opacity: 0;
