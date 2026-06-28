@@ -85,6 +85,39 @@ let attendanceState = {
 let adminAttendanceOverview = null;
 let teacherDashboardSummary = null;
 let mockAttendanceClosed = false;
+let feeState = {
+  filters: { search: "", grade: "", status: "", academicYear: "" },
+  fees: [],
+  transactions: [],
+  summary: { total: 0, paid: 0, due: 0, pendingAccounts: 0 },
+  grades: [],
+  statuses: [],
+  academicYears: [],
+  paymentModes: [],
+  students: [],
+  permissions: { canView: false, canManage: false, canRecordPayment: false },
+};
+let notificationState = {
+  filters: { search: "", audience: "", status: "" },
+  notifications: [],
+  audiences: [],
+  priorities: [],
+  statuses: [],
+  grades: [],
+  students: [],
+  permissions: { canView: false, canManage: false },
+};
+let calendarState = {
+  filters: { month: "", dayType: "", academicYear: "" },
+  events: [],
+  summary: { total: 0, upcoming: 0, holidays: 0 },
+  dayTypes: [],
+  audiences: [],
+  statuses: [],
+  grades: [],
+  academicYears: [],
+  permissions: { canView: false, canManage: false },
+};
 
 const mockUsers = [
   {
@@ -164,6 +197,23 @@ const mockTeachers = [
     Status: "Active",
     JoiningDate: "2026-07-01",
   },
+];
+
+const mockFees = [
+  { StudentID: "PUP001", Grade: "3", TotalFees: 25000, PaidAmount: 10000, DueAmount: 15000, DueDate: "2026-08-31", LastPaymentDate: "2026-06-10", Status: "Partial", AcademicYear: "2026-27" },
+  { StudentID: "PUP002", Grade: "4", TotalFees: 28000, PaidAmount: 28000, DueAmount: 0, DueDate: "2026-08-31", LastPaymentDate: "2026-06-15", Status: "Paid", AcademicYear: "2026-27" },
+];
+const mockFeeTransactions = [
+  { TransactionID: "FT0001", StudentID: "PUP001", Amount: 10000, PaymentDate: "2026-06-10", Mode: "UPI", Remarks: "First installment", AcademicYear: "2026-27" },
+  { TransactionID: "FT0002", StudentID: "PUP002", Amount: 28000, PaymentDate: "2026-06-15", Mode: "Cash", Remarks: "Full payment", AcademicYear: "2026-27" },
+];
+const mockNotifications = [
+  { NotificationID: "NTF0001", Title: "Welcome to the new academic year", Message: "We look forward to a joyful year of learning, discipline, creativity, and growth.", Audience: "All", TargetValue: "", TargetLabel: "Entire school community", Priority: "Important", PublishDate: "2026-06-20", ExpiryDate: "", Status: "Published" },
+  { NotificationID: "NTF0002", Title: "Class 3 parent orientation", Message: "Parents of Class 3 students are invited to meet the class teacher on Saturday at 11:00 AM.", Audience: "Grade", TargetValue: "3", TargetLabel: "Class 3", Priority: "Normal", PublishDate: "2026-06-25", ExpiryDate: "2026-07-05", Status: "Published" },
+];
+const mockCalendarEvents = [
+  { EventID: "CAL0001", Date: "2026-07-15", EndDate: "2026-07-15", DayType: "Event", Title: "School Reopening", Note: "Regular classes begin for the new academic year.", Audience: "All", TargetValue: "", TargetLabel: "Entire school community", AcademicYear: "2026-27", Status: "Published" },
+  { EventID: "CAL0002", Date: "2026-08-15", EndDate: "2026-08-15", DayType: "Holiday", Title: "Independence Day", Note: "School celebration schedule will be shared separately.", Audience: "All", TargetValue: "", TargetLabel: "Entire school community", AcademicYear: "2026-27", Status: "Published" },
 ];
 
 document.addEventListener("DOMContentLoaded", () => {
@@ -271,6 +321,42 @@ const appsScriptApi = {
       token: getToken(),
       request,
     });
+  },
+
+  listFees(filters) {
+    return callAppsScript("listFees", { token: getToken(), filters });
+  },
+
+  saveFeeAccount(fee) {
+    return callAppsScript("saveFeeAccount", { token: getToken(), fee });
+  },
+
+  recordFeePayment(payment) {
+    return callAppsScript("recordFeePayment", { token: getToken(), payment });
+  },
+
+  listNotifications(filters) {
+    return callAppsScript("listNotifications", { token: getToken(), filters });
+  },
+
+  saveNotification(notification) {
+    return callAppsScript("saveNotification", { token: getToken(), notification });
+  },
+
+  archiveNotification(notificationId) {
+    return callAppsScript("archiveNotification", { token: getToken(), notificationId });
+  },
+
+  listAcademicCalendar(filters) {
+    return callAppsScript("listAcademicCalendar", { token: getToken(), filters });
+  },
+
+  saveCalendarEvent(event) {
+    return callAppsScript("saveCalendarEvent", { token: getToken(), event });
+  },
+
+  archiveCalendarEvent(eventId) {
+    return callAppsScript("archiveCalendarEvent", { token: getToken(), eventId });
   },
 };
 
@@ -760,6 +846,134 @@ const mockApi = {
       };
     });
   },
+
+  listFees(filters) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || !["Admin", "Parent"].includes(session.user.role)) throw new Error("Access denied");
+      const year = filters.academicYear || "2026-27";
+      let fees = mockFees.filter((fee) => fee.AcademicYear === year).map((fee) => {
+        const student = mockStudents.find((item) => item.StudentID === fee.StudentID) || {};
+        return { ...fee, StudentName: student.Name || "", ParentName: student.ParentName || "", ParentPhone: student.ParentPhone || "", PhotoURL: student.PhotoURL || "" };
+      });
+      if (session.user.role === "Parent") fees = fees.filter((fee) => fee.ParentPhone === session.user.phone);
+      const search = String(filters.search || "").trim().toLowerCase();
+      if (search) fees = fees.filter((fee) => [fee.StudentID, fee.StudentName, fee.ParentName, fee.Grade].some((value) => String(value || "").toLowerCase().includes(search)));
+      if (filters.grade) fees = fees.filter((fee) => fee.Grade === filters.grade);
+      if (filters.status) fees = fees.filter((fee) => fee.Status === filters.status);
+      const ids = fees.map((fee) => fee.StudentID);
+      const transactions = mockFeeTransactions.filter((item) => item.AcademicYear === year && ids.includes(item.StudentID));
+      const summary = fees.reduce((totals, fee) => ({
+        total: totals.total + Number(fee.TotalFees || 0),
+        paid: totals.paid + Number(fee.PaidAmount || 0),
+        due: totals.due + Number(fee.DueAmount || 0),
+        pendingAccounts: totals.pendingAccounts + (Number(fee.DueAmount || 0) > 0 ? 1 : 0),
+      }), { total: 0, paid: 0, due: 0, pendingAccounts: 0 });
+      return { success: true, academicYear: year, academicYears: ["2026-27"], fees, transactions, summary, grades: uniqueValues(fees, "Grade"), statuses: ["Pending", "Partial", "Overdue", "Paid"], paymentModes: ["Cash", "UPI", "Bank Transfer", "Cheque", "Other"], students: mockStudents.map((item) => ({ StudentID: item.StudentID, Name: item.Name, Grade: item.Grade })), permissions: { canView: true, canManage: session.user.role === "Admin", canRecordPayment: session.user.role === "Admin" } };
+    });
+  },
+
+  saveFeeAccount(fee) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin") throw new Error("Access denied");
+      const student = mockStudents.find((item) => item.StudentID === fee.StudentID);
+      if (!student) return { success: false, message: "Select a valid student" };
+      const existing = mockFees.find((item) => item.StudentID === fee.StudentID && item.AcademicYear === fee.AcademicYear);
+      const total = Number(fee.TotalFees || 0);
+      const paid = existing ? Number(existing.PaidAmount || 0) : 0;
+      if (total < paid) return { success: false, message: "Total fee cannot be lower than the amount already paid" };
+      const next = { StudentID: student.StudentID, Grade: student.Grade, TotalFees: total, PaidAmount: paid, DueAmount: total - paid, DueDate: fee.DueDate || existing?.DueDate || "", LastPaymentDate: existing?.LastPaymentDate || "", Status: paid >= total ? "Paid" : paid > 0 ? "Partial" : "Pending", AcademicYear: fee.AcademicYear };
+      if (existing) Object.assign(existing, next); else mockFees.push(next);
+      return { success: true };
+    });
+  },
+
+  recordFeePayment(payment) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin") throw new Error("Access denied");
+      const fee = mockFees.find((item) => item.StudentID === payment.StudentID && item.AcademicYear === payment.AcademicYear);
+      const amount = Number(payment.Amount || 0);
+      if (!fee || amount <= 0 || amount > fee.DueAmount) return { success: false, message: "Enter a valid payment amount" };
+      const id = `FT${String(mockFeeTransactions.length + 1).padStart(4, "0")}`;
+      mockFeeTransactions.push({ ...payment, TransactionID: id, Amount: amount });
+      fee.PaidAmount += amount;
+      fee.DueAmount -= amount;
+      fee.LastPaymentDate = payment.PaymentDate;
+      fee.Status = fee.DueAmount === 0 ? "Paid" : "Partial";
+      return { success: true, transactionId: id };
+    });
+  },
+
+  listNotifications(filters) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session) throw new Error("Authentication required");
+      let notifications = [...mockNotifications];
+      if (session.user.role !== "Admin") notifications = notifications.filter((item) => item.Status === "Published" && (item.Audience === "All" || item.Audience === `${session.user.role}s` || (item.Audience === "Grade" && (session.user.grades || []).includes(item.TargetValue))));
+      const search = String(filters.search || "").toLowerCase();
+      if (search) notifications = notifications.filter((item) => `${item.Title} ${item.Message}`.toLowerCase().includes(search));
+      if (filters.audience) notifications = notifications.filter((item) => item.Audience === filters.audience);
+      if (filters.status && session.user.role === "Admin") notifications = notifications.filter((item) => item.Status === filters.status);
+      return { success: true, notifications, audiences: ["All", "Parents", "Teachers", "Grade", "Student"], priorities: ["Normal", "Important", "Urgent"], statuses: ["Draft", "Published", "Archived"], grades: uniqueValues(mockStudents, "Grade"), students: mockStudents.map((item) => ({ StudentID: item.StudentID, Name: item.Name, Grade: item.Grade })), permissions: { canView: true, canManage: session.user.role === "Admin" } };
+    });
+  },
+
+  saveNotification(notification) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin") throw new Error("Access denied");
+      const existing = mockNotifications.find((item) => item.NotificationID === notification.NotificationID);
+      const next = { ...notification, NotificationID: notification.NotificationID || `NTF${String(mockNotifications.length + 1).padStart(4, "0")}`, PublishDate: notification.Date, Status: notification.SentStatus, TargetLabel: notification.Audience === "Grade" ? formatGradeLabel(notification.TargetValue) : notification.Audience === "Student" ? notification.TargetValue : notification.Audience === "All" ? "Entire school community" : `All ${notification.Audience.toLowerCase()}` };
+      if (existing) Object.assign(existing, next); else mockNotifications.push(next);
+      return { success: true };
+    });
+  },
+
+  archiveNotification(notificationId) {
+    return delay(() => {
+      const item = mockNotifications.find((notification) => notification.NotificationID === notificationId);
+      if (item) item.Status = "Archived";
+      return { success: true };
+    });
+  },
+
+  listAcademicCalendar(filters) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session) throw new Error("Authentication required");
+      let events = mockCalendarEvents.filter((item) => item.AcademicYear === (filters.academicYear || "2026-27"));
+      if (session.user.role !== "Admin") events = events.filter((item) => item.Status === "Published" && (item.Audience === "All" || item.Audience === `${session.user.role}s` || (item.Audience === "Grade" && (session.user.grades || []).includes(item.TargetValue))));
+      if (filters.month) {
+        const monthStart = `${filters.month}-01`;
+        const [yearNumber, monthNumber] = filters.month.split("-").map(Number);
+        const monthEnd = new Date(yearNumber, monthNumber, 0).toISOString().slice(0, 10);
+        events = events.filter((item) => item.Date <= monthEnd && item.EndDate >= monthStart);
+      }
+      if (filters.dayType) events = events.filter((item) => item.DayType === filters.dayType);
+      return { success: true, academicYear: filters.academicYear || "2026-27", academicYears: ["2026-27"], events, summary: { total: events.length, upcoming: events.length, holidays: events.filter((item) => item.DayType === "Holiday").length }, dayTypes: ["Holiday", "Event", "Exam", "Meeting", "Activity", "Deadline"], audiences: ["All", "Parents", "Teachers", "Grade"], statuses: ["Draft", "Published", "Archived"], grades: uniqueValues(mockStudents, "Grade"), permissions: { canView: true, canManage: session.user.role === "Admin" } };
+    });
+  },
+
+  saveCalendarEvent(event) {
+    return delay(() => {
+      const session = getMockSession(getToken());
+      if (!session || session.user.role !== "Admin") throw new Error("Access denied");
+      const existing = mockCalendarEvents.find((item) => item.EventID === event.EventID);
+      const next = { ...event, EventID: event.EventID || `CAL${String(mockCalendarEvents.length + 1).padStart(4, "0")}`, EndDate: event.EndDate || event.Date, TargetLabel: event.Audience === "Grade" ? formatGradeLabel(event.TargetValue) : event.Audience === "All" ? "Entire school community" : `All ${event.Audience.toLowerCase()}` };
+      if (existing) Object.assign(existing, next); else mockCalendarEvents.push(next);
+      return { success: true };
+    });
+  },
+
+  archiveCalendarEvent(eventId) {
+    return delay(() => {
+      const item = mockCalendarEvents.find((event) => event.EventID === eventId);
+      if (item) item.Status = "Archived";
+      return { success: true };
+    });
+  },
 };
 
 const api = API_MODE === "apps-script" ? appsScriptApi : mockApi;
@@ -827,7 +1041,7 @@ function getModule() {
   const moduleName = String(params.get("module") || "dashboard")
     .trim()
     .toLowerCase();
-  return ["students", "attendance", "teachers", "settings"].includes(moduleName)
+  return ["students", "attendance", "teachers", "fees", "notifications", "academiccalendar", "settings"].includes(moduleName)
     ? moduleName
     : "dashboard";
 }
@@ -988,6 +1202,9 @@ function renderDashboard(user, route, moduleName = "dashboard") {
   if (moduleName === "students") loadStudents();
   if (moduleName === "attendance") loadAttendance();
   if (moduleName === "teachers") loadTeachers();
+  if (moduleName === "fees") loadFees();
+  if (moduleName === "notifications") loadNotifications();
+  if (moduleName === "academiccalendar") loadAcademicCalendar();
   if (moduleName === "settings") loadSettings();
   if (moduleName === "dashboard" && user.role === "Admin")
     loadAdminAttendanceOverview();
@@ -1019,6 +1236,9 @@ function renderMobileNav(route, user, moduleName) {
               "students",
               "attendance",
               "teachers",
+              "fees",
+              "notifications",
+              "academiccalendar",
               "settings",
             ];
             const isEnabled = activeModules.includes(item.module);
@@ -1068,6 +1288,10 @@ function renderModule(moduleName, user) {
   if (moduleName === "attendance") return renderAttendanceShell(user);
   if (moduleName === "teachers" && user.role === "Admin")
     return renderTeachersShell();
+  if (moduleName === "fees" && ["Admin", "Parent"].includes(user.role))
+    return renderFeesShell(user);
+  if (moduleName === "notifications") return renderNotificationsShell(user);
+  if (moduleName === "academiccalendar") return renderAcademicCalendarShell(user);
   if (moduleName === "settings" && user.role === "Admin")
     return renderSettingsShell();
   return renderDashboardHome(user);
@@ -1292,6 +1516,9 @@ function renderSidebar(route, user, moduleName) {
         "students",
         "attendance",
         "teachers",
+        "fees",
+        "notifications",
+        "academiccalendar",
         "settings",
       ].includes(moduleKey);
       if (isActiveModule) {
@@ -2723,6 +2950,459 @@ function renderTeacherError(message) {
     host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
 }
 
+function renderFeesShell(user = currentUser) {
+  const isAdmin = user && user.role === "Admin";
+  return `
+    <section class="module-header">
+      <div>
+        <div class="section-kicker">${isAdmin ? "Fee Management" : "Family Fee Account"}</div>
+        <h1>${isAdmin ? "Fees" : "School Fees"}</h1>
+        <p>${isAdmin ? "A clear view of yearly fee accounts, collections, pending balances, and payment history." : "View fee balances and payment history for your children."}</p>
+      </div>
+      ${isAdmin ? '<button class="primary-btn compact" id="addFeeAccountButton" type="button">Set Student Fee</button>' : ""}
+    </section>
+    <section class="toolbar fee-toolbar">
+      ${isAdmin ? `
+        <div class="field"><label for="feeSearch">Search</label><input id="feeSearch" placeholder="Student, ID, parent, class"></div>
+        <div class="field"><label for="feeGradeFilter">Class</label><select id="feeGradeFilter"></select></div>
+        <div class="field"><label for="feeStatusFilter">Status</label><select id="feeStatusFilter"></select></div>
+      ` : ""}
+      <div class="field"><label for="feeYearFilter">Academic Year</label><select id="feeYearFilter"></select></div>
+    </section>
+    <div id="feesHost"><div class="user-chip">Loading fee accounts...</div></div>
+  `;
+}
+
+function loadFees() {
+  const host = document.getElementById("feesHost");
+  if (host) host.innerHTML = '<div class="user-chip">Loading fee accounts...</div>';
+  api.listFees(feeState.filters)
+    .then((result) => {
+      if (!result.success) return renderFeesError(result.message || "Unable to load fees");
+      feeState = {
+        ...feeState,
+        ...result,
+        filters: { ...feeState.filters, academicYear: result.academicYear || feeState.filters.academicYear },
+      };
+      bindFeeFilters();
+      renderFees();
+    })
+    .catch((error) => {
+      console.error(error);
+      renderFeesError("Unable to load fee information");
+    });
+}
+
+function bindFeeFilters() {
+  populateSelect("feeGradeFilter", feeState.grades, "All classes", feeState.filters.grade);
+  populateSelect("feeStatusFilter", feeState.statuses, "All statuses", feeState.filters.status);
+  populateSelect("feeYearFilter", feeState.academicYears, "Academic year", feeState.filters.academicYear);
+  const search = document.getElementById("feeSearch");
+  if (search) {
+    search.value = feeState.filters.search;
+    search.oninput = debounce((event) => {
+      feeState.filters.search = event.target.value;
+      loadFees();
+    }, 280);
+  }
+  const grade = document.getElementById("feeGradeFilter");
+  if (grade) grade.onchange = (event) => { feeState.filters.grade = event.target.value; loadFees(); };
+  const status = document.getElementById("feeStatusFilter");
+  if (status) status.onchange = (event) => { feeState.filters.status = event.target.value; loadFees(); };
+  const year = document.getElementById("feeYearFilter");
+  if (year) year.onchange = (event) => { feeState.filters.academicYear = event.target.value; loadFees(); };
+  const addButton = document.getElementById("addFeeAccountButton");
+  if (addButton) addButton.onclick = () => openFeeAccountForm();
+}
+
+function renderFees() {
+  const host = document.getElementById("feesHost");
+  if (!host) return;
+  const summary = feeState.summary || {};
+  const accounts = feeState.fees || [];
+  host.innerHTML = `
+    <section class="financial-summary-grid">
+      ${renderFinancialMetric("Yearly Fees", formatCurrency(summary.total), "Total assigned")}
+      ${renderFinancialMetric("Collected", formatCurrency(summary.paid), "Payments received", "positive")}
+      ${renderFinancialMetric("Pending", formatCurrency(summary.due), `${summary.pendingAccounts || 0} account${Number(summary.pendingAccounts) === 1 ? "" : "s"}`, summary.due > 0 ? "warning" : "positive")}
+      ${renderFinancialMetric("Academic Year", feeState.filters.academicYear || "Not set", "Current view")}
+    </section>
+    ${accounts.length ? `<section class="fee-account-grid">${accounts.map(renderFeeAccountCard).join("")}</section>` : `
+      <section class="empty-state"><h2>No fee accounts found</h2><p>${feeState.permissions.canManage ? "Set a yearly fee for a student to begin tracking payments." : "No fee information is available for this academic year."}</p></section>
+    `}
+  `;
+  document.querySelectorAll("[data-fee-details]").forEach((button) => {
+    button.onclick = () => openFeeDetails(button.dataset.feeDetails);
+  });
+  document.querySelectorAll("[data-fee-edit]").forEach((button) => {
+    button.onclick = () => openFeeAccountForm(feeState.fees.find((item) => item.StudentID === button.dataset.feeEdit));
+  });
+  document.querySelectorAll("[data-fee-payment]").forEach((button) => {
+    button.onclick = () => openFeePaymentForm(feeState.fees.find((item) => item.StudentID === button.dataset.feePayment));
+  });
+}
+
+function renderFinancialMetric(label, value, note, tone = "") {
+  return `<article class="financial-metric ${tone}"><span>${escapeHtml(label)}</span><strong>${escapeHtml(value)}</strong><small>${escapeHtml(note)}</small></article>`;
+}
+
+function renderFeeAccountCard(fee) {
+  const paidPercent = fee.TotalFees > 0 ? Math.min(100, Math.round((fee.PaidAmount / fee.TotalFees) * 100)) : 0;
+  return `
+    <article class="fee-account-card ${String(fee.Status || "").toLowerCase()}">
+      <div class="fee-account-head">
+        ${renderStudentAvatar({ ...fee, Name: fee.StudentName }, "fee-student-avatar")}
+        <div><span>${escapeHtml(fee.StudentID)}</span><h2>${escapeHtml(fee.StudentName || "Student")}</h2><p>${escapeHtml(formatGradeLabel(fee.Grade))}</p></div>
+        <span class="status-pill ${fee.Status === "Paid" ? "active" : fee.Status === "Partial" ? "halfday" : "inactive"}">${escapeHtml(fee.Status)}</span>
+      </div>
+      <div class="fee-progress" aria-label="${paidPercent}% of fees paid"><span style="width:${paidPercent}%"></span></div>
+      <div class="fee-amounts">
+        <div><small>Total</small><strong>${formatCurrency(fee.TotalFees)}</strong></div>
+        <div><small>Paid</small><strong>${formatCurrency(fee.PaidAmount)}</strong></div>
+        <div><small>Pending</small><strong>${formatCurrency(fee.DueAmount)}</strong></div>
+      </div>
+      <div class="fee-card-foot">
+        <span>${fee.LastPaymentDate ? `Last payment ${escapeHtml(formatFriendlyDate(fee.LastPaymentDate))}` : "No payment recorded"}${fee.DueDate && fee.DueAmount > 0 ? ` · Due ${escapeHtml(formatFriendlyDate(fee.DueDate))}` : ""}</span>
+        <div class="fee-actions">
+          <button class="text-btn" type="button" data-fee-details="${escapeHtml(fee.StudentID)}">Payment history</button>
+          ${feeState.permissions.canManage ? `<button class="text-btn" type="button" data-fee-edit="${escapeHtml(fee.StudentID)}">Edit fee</button>` : ""}
+          ${feeState.permissions.canRecordPayment && fee.DueAmount > 0 ? `<button class="primary-btn compact" type="button" data-fee-payment="${escapeHtml(fee.StudentID)}">Record payment</button>` : ""}
+        </div>
+      </div>
+    </article>
+  `;
+}
+
+function openFeeDetails(studentId) {
+  const fee = feeState.fees.find((item) => item.StudentID === studentId);
+  if (!fee) return;
+  const transactions = feeState.transactions.filter((item) => item.StudentID === studentId);
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <section class="student-detail-modal fee-detail-modal" role="dialog" aria-modal="true" aria-labelledby="feeDetailTitle">
+      <div class="form-head"><div><span class="section-kicker">Payment History</span><h2 id="feeDetailTitle">${escapeHtml(fee.StudentName || fee.StudentID)}</h2><p>${escapeHtml(feeState.filters.academicYear)}</p></div><button class="icon-btn" type="button" data-close-modal>X</button></div>
+      <div class="fee-detail-balance"><span>Pending balance</span><strong>${formatCurrency(fee.DueAmount)}</strong></div>
+      <div class="receipt-list">
+        ${transactions.length ? transactions.map((transaction) => `
+          <article><div><strong>${formatCurrency(transaction.Amount)}</strong><span>${escapeHtml(formatFriendlyDate(transaction.PaymentDate))}</span></div><div><span>${escapeHtml(transaction.Mode)}</span><small>${escapeHtml(transaction.TransactionID)}${transaction.Remarks ? ` · ${escapeHtml(transaction.Remarks)}` : ""}</small></div></article>
+        `).join("") : '<div class="muted-text">No payments have been recorded for this academic year.</div>'}
+      </div>
+    </section>
+  `;
+  document.body.appendChild(modal);
+  bindSimpleModal(modal);
+}
+
+function openFeeAccountForm(fee = {}) {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  const selectedYear = fee.AcademicYear || feeState.filters.academicYear || feeState.academicYears[0] || "";
+  modal.innerHTML = `
+    <form class="student-form compact-form" id="feeAccountForm">
+      <div class="form-head"><div><span class="section-kicker">${fee.StudentID ? "Update Fee" : "New Fee Account"}</span><h2>${fee.StudentID ? escapeHtml(fee.StudentName) : "Set yearly fee"}</h2></div><button class="icon-btn" type="button" data-close-modal>X</button></div>
+      <div class="field"><label for="feeStudentId">Student</label><select id="feeStudentId" name="StudentID" ${fee.StudentID ? "disabled" : ""} required>${feeState.students.map((student) => `<option value="${escapeHtml(student.StudentID)}" ${student.StudentID === fee.StudentID ? "selected" : ""}>${escapeHtml(student.Name)} · ${escapeHtml(formatGradeLabel(student.Grade))} · ${escapeHtml(student.StudentID)}</option>`).join("")}</select></div>
+      ${fee.StudentID ? `<input type="hidden" name="StudentID" value="${escapeHtml(fee.StudentID)}">` : ""}
+      <div class="form-grid"><div class="field"><label for="feeAcademicYear">Academic Year</label><select id="feeAcademicYear" name="AcademicYear" required>${feeState.academicYears.map((year) => `<option value="${escapeHtml(year)}" ${year === selectedYear ? "selected" : ""}>${escapeHtml(year)}</option>`).join("")}</select></div><div class="field"><label for="feeTotalAmount">Total yearly fee</label><input id="feeTotalAmount" name="TotalFees" type="number" min="1" step="1" value="${escapeHtml(fee.TotalFees || "")}" required></div></div>
+      <div class="field"><label for="feeDueDate">Payment due date</label><input id="feeDueDate" name="DueDate" type="date" value="${escapeHtml(fee.DueDate || "")}"><small class="field-hint">Optional. Accounts with a pending balance after this date are shown as overdue.</small></div>
+      ${fee.PaidAmount ? `<div class="form-note">Already paid: <strong>${formatCurrency(fee.PaidAmount)}</strong>. The yearly fee cannot be set below this amount.</div>` : ""}
+      <button class="primary-btn" id="saveFeeAccountButton" type="submit">Save Fee Account</button><div class="message" id="feeAccountMessage"></div>
+    </form>
+  `;
+  document.body.appendChild(modal);
+  bindSimpleModal(modal);
+  modal.querySelector("form").onsubmit = submitFeeAccount;
+}
+
+function submitFeeAccount(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const button = document.getElementById("saveFeeAccountButton");
+  const message = document.getElementById("feeAccountMessage");
+  const data = Object.fromEntries(new FormData(form).entries());
+  button.disabled = true; button.textContent = "Saving..."; message.textContent = "";
+  api.saveFeeAccount(data).then((result) => {
+    if (!result.success) { button.disabled = false; button.textContent = "Save Fee Account"; message.textContent = result.message || "Unable to save fee account"; return; }
+    form.closest(".modal-backdrop").remove(); loadFees();
+  }).catch((error) => { console.error(error); button.disabled = false; button.textContent = "Save Fee Account"; message.textContent = "Unable to save fee account"; });
+}
+
+function openFeePaymentForm(fee) {
+  if (!fee) return;
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <form class="student-form compact-form" id="feePaymentForm">
+      <div class="form-head"><div><span class="section-kicker">Record Payment</span><h2>${escapeHtml(fee.StudentName)}</h2><p>Pending ${formatCurrency(fee.DueAmount)}</p></div><button class="icon-btn" type="button" data-close-modal>X</button></div>
+      <input type="hidden" name="StudentID" value="${escapeHtml(fee.StudentID)}"><input type="hidden" name="AcademicYear" value="${escapeHtml(fee.AcademicYear)}">
+      <div class="form-grid"><div class="field"><label for="paymentAmount">Amount received</label><input id="paymentAmount" name="Amount" type="number" min="1" max="${escapeHtml(fee.DueAmount)}" step="1" required></div><div class="field"><label for="paymentDate">Payment date</label><input id="paymentDate" name="PaymentDate" type="date" max="${getTodayDate()}" value="${getTodayDate()}" required></div></div>
+      <div class="field"><label for="paymentMode">Payment mode</label><select id="paymentMode" name="Mode" required>${feeState.paymentModes.map((mode) => `<option value="${escapeHtml(mode)}">${escapeHtml(mode)}</option>`).join("")}</select></div>
+      <div class="field"><label for="paymentRemarks">Remarks or reference number</label><input id="paymentRemarks" name="Remarks" maxlength="150" placeholder="Optional"></div>
+      <div class="form-note">Confirm the student, amount, and payment mode carefully. Payments are preserved as financial history.</div>
+      <button class="primary-btn" id="recordFeePaymentButton" type="submit">Record Payment</button><div class="message" id="feePaymentMessage"></div>
+    </form>
+  `;
+  document.body.appendChild(modal); bindSimpleModal(modal); modal.querySelector("form").onsubmit = submitFeePayment;
+}
+
+function submitFeePayment(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const button = document.getElementById("recordFeePaymentButton");
+  const message = document.getElementById("feePaymentMessage");
+  if (!window.confirm(`Record a payment of ${formatCurrency(data.Amount)} for ${data.StudentID}?`)) return;
+  button.disabled = true; button.textContent = "Recording..."; message.textContent = "";
+  api.recordFeePayment(data).then((result) => {
+    if (!result.success) { button.disabled = false; button.textContent = "Record Payment"; message.textContent = result.message || "Unable to record payment"; return; }
+    form.closest(".modal-backdrop").remove(); loadFees();
+  }).catch((error) => { console.error(error); button.disabled = false; button.textContent = "Record Payment"; message.textContent = "Unable to record payment"; });
+}
+
+function renderFeesError(message) {
+  const host = document.getElementById("feesHost");
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
+}
+
+function renderNotificationsShell(user = currentUser) {
+  const isAdmin = user && user.role === "Admin";
+  return `
+    <section class="module-header">
+      <div><div class="section-kicker">School Communication</div><h1>Notifications</h1><p>${isAdmin ? "Create clear school notices and publish them to the right families or staff." : "Important notices and timely updates from Pinnacle Upper Primary School."}</p></div>
+      ${isAdmin ? '<button class="primary-btn compact" id="composeNotificationButton" type="button">Create Notice</button>' : ""}
+    </section>
+    <section class="toolbar notification-toolbar">
+      <div class="field"><label for="notificationSearch">Search notices</label><input id="notificationSearch" placeholder="Title or message"></div>
+      ${isAdmin ? '<div class="field"><label for="notificationAudienceFilter">Audience</label><select id="notificationAudienceFilter"></select></div><div class="field"><label for="notificationStatusFilter">Status</label><select id="notificationStatusFilter"></select></div>' : ""}
+    </section>
+    <div id="notificationsHost"><div class="user-chip">Loading school notices...</div></div>
+  `;
+}
+
+function loadNotifications() {
+  api.listNotifications(notificationState.filters).then((result) => {
+    if (!result.success) return renderNotificationsError(result.message || "Unable to load notifications");
+    notificationState = { ...notificationState, ...result, filters: notificationState.filters };
+    bindNotificationFilters(); renderNotifications();
+  }).catch((error) => { console.error(error); renderNotificationsError("Unable to load school notices"); });
+}
+
+function bindNotificationFilters() {
+  populateSelect("notificationAudienceFilter", notificationState.audiences, "All audiences", notificationState.filters.audience);
+  populateSelect("notificationStatusFilter", notificationState.statuses, "All statuses", notificationState.filters.status);
+  const search = document.getElementById("notificationSearch");
+  if (search) { search.value = notificationState.filters.search; search.oninput = debounce((event) => { notificationState.filters.search = event.target.value; loadNotifications(); }, 280); }
+  const audience = document.getElementById("notificationAudienceFilter");
+  if (audience) audience.onchange = (event) => { notificationState.filters.audience = event.target.value; loadNotifications(); };
+  const status = document.getElementById("notificationStatusFilter");
+  if (status) status.onchange = (event) => { notificationState.filters.status = event.target.value; loadNotifications(); };
+  const compose = document.getElementById("composeNotificationButton");
+  if (compose) compose.onclick = () => openNotificationForm();
+}
+
+function renderNotifications() {
+  const host = document.getElementById("notificationsHost");
+  if (!host) return;
+  const items = notificationState.notifications || [];
+  host.innerHTML = items.length ? `<section class="notice-feed">${items.map(renderNotificationCard).join("")}</section>` : '<section class="empty-state"><h2>No notices found</h2><p>There are no school notices matching this view.</p></section>';
+  document.querySelectorAll("[data-edit-notification]").forEach((button) => { button.onclick = () => openNotificationForm(items.find((item) => item.NotificationID === button.dataset.editNotification)); });
+  document.querySelectorAll("[data-archive-notification]").forEach((button) => { button.onclick = () => archiveNotificationItem(button.dataset.archiveNotification); });
+}
+
+function renderNotificationCard(notification) {
+  const priority = String(notification.Priority || "Normal").toLowerCase();
+  return `
+    <article class="notice-feed-card priority-${priority}">
+      <div class="notice-date-tile"><strong>${escapeHtml(getDateDay(notification.PublishDate))}</strong><span>${escapeHtml(getDateMonth(notification.PublishDate))}</span></div>
+      <div class="notice-content">
+        <div class="notice-meta"><span class="notice-priority">${escapeHtml(notification.Priority || "Normal")}</span><span>${escapeHtml(notification.TargetLabel || notification.Audience)}</span>${notification.Status !== "Published" ? `<span class="status-pill inactive">${escapeHtml(notification.Status)}</span>` : ""}</div>
+        <h2>${escapeHtml(notification.Title)}</h2><p>${escapeHtml(notification.Message)}</p>
+        ${notification.ExpiryDate ? `<small>Visible until ${escapeHtml(formatFriendlyDate(notification.ExpiryDate))}</small>` : ""}
+      </div>
+      ${notificationState.permissions.canManage && !notification.Legacy ? `<div class="notice-actions"><button class="text-btn" type="button" data-edit-notification="${escapeHtml(notification.NotificationID)}">Edit</button>${notification.Status !== "Archived" ? `<button class="text-btn danger" type="button" data-archive-notification="${escapeHtml(notification.NotificationID)}">Archive</button>` : ""}</div>` : ""}
+    </article>
+  `;
+}
+
+function openNotificationForm(notification = {}) {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  modal.innerHTML = `
+    <form class="student-form notice-form" id="notificationForm">
+      <div class="form-head"><div><span class="section-kicker">${notification.NotificationID ? "Edit Notice" : "New Notice"}</span><h2>${notification.NotificationID ? escapeHtml(notification.Title) : "Create a school notice"}</h2></div><button class="icon-btn" type="button" data-close-modal>X</button></div>
+      <input type="hidden" name="NotificationID" value="${escapeHtml(notification.NotificationID || "")}">
+      <div class="field"><label for="noticeTitle">Title</label><input id="noticeTitle" name="Title" maxlength="100" value="${escapeHtml(notification.Title || "")}" required></div>
+      <div class="field"><label for="noticeMessage">Message</label><textarea id="noticeMessage" name="Message" rows="5" maxlength="700" required>${escapeHtml(notification.Message || "")}</textarea><small class="field-hint">Keep the notice clear, complete, and easy to understand.</small></div>
+      <div class="form-grid"><div class="field"><label for="noticeAudience">Audience</label><select id="noticeAudience" name="Audience">${notificationState.audiences.map((item) => `<option value="${escapeHtml(item)}" ${item === (notification.Audience || "All") ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select></div><div id="notificationTargetHost"></div></div>
+      <div class="form-grid"><div class="field"><label for="noticePriority">Priority</label><select id="noticePriority" name="Priority">${notificationState.priorities.map((item) => `<option value="${escapeHtml(item)}" ${item === (notification.Priority || "Normal") ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select></div><div class="field"><label for="noticeStatus">Publication</label><select id="noticeStatus" name="SentStatus"><option value="Draft" ${notification.Status === "Draft" ? "selected" : ""}>Save as draft</option><option value="Published" ${notification.Status !== "Draft" && notification.Status !== "Archived" ? "selected" : ""}>Publish</option></select></div></div>
+      <div class="form-grid"><div class="field"><label for="noticeDate">Publish date</label><input id="noticeDate" name="Date" type="date" value="${escapeHtml(notification.PublishDate || getTodayDate())}" required></div><div class="field"><label for="noticeExpiry">Expiry date</label><input id="noticeExpiry" name="ExpiryDate" type="date" value="${escapeHtml(notification.ExpiryDate || "")}"></div></div>
+      <button class="primary-btn" id="saveNotificationButton" type="submit">Save Notice</button><div class="message" id="notificationFormMessage"></div>
+    </form>
+  `;
+  document.body.appendChild(modal); bindSimpleModal(modal);
+  const audience = modal.querySelector("#noticeAudience");
+  const refreshTarget = () => renderNotificationTarget(audience.value, notification.TargetValue || "");
+  audience.onchange = () => renderNotificationTarget(audience.value, "");
+  refreshTarget();
+  modal.querySelector("form").onsubmit = submitNotificationForm;
+}
+
+function renderNotificationTarget(audience, selectedValue) {
+  const host = document.getElementById("notificationTargetHost");
+  if (!host) return;
+  if (audience === "Grade") {
+    host.innerHTML = `<div class="field"><label for="noticeTarget">Class</label><select id="noticeTarget" name="TargetValue" required>${notificationState.grades.map((grade) => `<option value="${escapeHtml(grade)}" ${grade === selectedValue ? "selected" : ""}>${escapeHtml(formatGradeLabel(grade))}</option>`).join("")}</select></div>`;
+  } else if (audience === "Student") {
+    host.innerHTML = `<div class="field"><label for="noticeTarget">Student</label><select id="noticeTarget" name="TargetValue" required>${notificationState.students.map((student) => `<option value="${escapeHtml(student.StudentID)}" ${student.StudentID === selectedValue ? "selected" : ""}>${escapeHtml(student.Name)} · ${escapeHtml(formatGradeLabel(student.Grade))}</option>`).join("")}</select></div>`;
+  } else {
+    host.innerHTML = '<div class="audience-note">The notice will be visible to the selected audience.</div>';
+  }
+}
+
+function submitNotificationForm(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const button = document.getElementById("saveNotificationButton");
+  const message = document.getElementById("notificationFormMessage");
+  button.disabled = true; button.textContent = data.SentStatus === "Published" ? "Publishing..." : "Saving..."; message.textContent = "";
+  api.saveNotification(data).then((result) => {
+    if (!result.success) { button.disabled = false; button.textContent = "Save Notice"; message.textContent = result.message || "Unable to save notice"; return; }
+    form.closest(".modal-backdrop").remove(); loadNotifications();
+  }).catch((error) => { console.error(error); button.disabled = false; button.textContent = "Save Notice"; message.textContent = "Unable to save notice"; });
+}
+
+function archiveNotificationItem(notificationId) {
+  if (!window.confirm("Archive this notice? It will no longer be visible to parents or teachers.")) return;
+  api.archiveNotification(notificationId).then((result) => result.success ? loadNotifications() : renderNotificationsError(result.message || "Unable to archive notice")).catch(() => renderNotificationsError("Unable to archive notice"));
+}
+
+function renderNotificationsError(message) {
+  const host = document.getElementById("notificationsHost");
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
+}
+
+function renderAcademicCalendarShell(user = currentUser) {
+  const isAdmin = user && user.role === "Admin";
+  const currentMonth = new Date().toISOString().slice(0, 7);
+  if (!calendarState.filters.month) calendarState.filters.month = currentMonth;
+  return `
+    <section class="module-header">
+      <div><div class="section-kicker">School Year Planner</div><h1>Academic Calendar</h1><p>${isAdmin ? "Plan holidays, school events, exams, meetings, activities, and important deadlines." : "Keep track of holidays, events, and important dates throughout the school year."}</p></div>
+      ${isAdmin ? '<button class="primary-btn compact" id="addCalendarEventButton" type="button">Add Calendar Entry</button>' : ""}
+    </section>
+    <section class="toolbar calendar-toolbar"><div class="field"><label for="calendarMonthFilter">Month</label><input id="calendarMonthFilter" type="month" value="${escapeHtml(calendarState.filters.month)}"></div><div class="field"><label for="calendarTypeFilter">Type</label><select id="calendarTypeFilter"></select></div><div class="field"><label for="calendarYearFilter">Academic Year</label><select id="calendarYearFilter"></select></div></section>
+    <div id="calendarHost"><div class="user-chip">Loading academic calendar...</div></div>
+  `;
+}
+
+function loadAcademicCalendar() {
+  api.listAcademicCalendar(calendarState.filters).then((result) => {
+    if (!result.success) return renderCalendarError(result.message || "Unable to load calendar");
+    calendarState = { ...calendarState, ...result, filters: { ...calendarState.filters, academicYear: result.academicYear || calendarState.filters.academicYear } };
+    bindCalendarFilters(); renderAcademicCalendar();
+  }).catch((error) => { console.error(error); renderCalendarError("Unable to load the academic calendar"); });
+}
+
+function bindCalendarFilters() {
+  populateSelect("calendarTypeFilter", calendarState.dayTypes, "All types", calendarState.filters.dayType);
+  populateSelect("calendarYearFilter", calendarState.academicYears, "Academic year", calendarState.filters.academicYear);
+  const month = document.getElementById("calendarMonthFilter");
+  if (month) month.onchange = (event) => { calendarState.filters.month = event.target.value; loadAcademicCalendar(); };
+  const type = document.getElementById("calendarTypeFilter");
+  if (type) type.onchange = (event) => { calendarState.filters.dayType = event.target.value; loadAcademicCalendar(); };
+  const year = document.getElementById("calendarYearFilter");
+  if (year) year.onchange = (event) => { calendarState.filters.academicYear = event.target.value; loadAcademicCalendar(); };
+  const add = document.getElementById("addCalendarEventButton");
+  if (add) add.onclick = () => openCalendarEventForm();
+}
+
+function renderAcademicCalendar() {
+  const host = document.getElementById("calendarHost");
+  if (!host) return;
+  const events = calendarState.events || [];
+  const summary = calendarState.summary || {};
+  host.innerHTML = `
+    <section class="calendar-summary-grid">
+      ${renderFinancialMetric("Entries", summary.total || 0, "In this view")}
+      ${renderFinancialMetric("Upcoming", summary.upcoming || 0, "Published dates ahead", "positive")}
+      ${renderFinancialMetric("Holidays", summary.holidays || 0, "Attendance disabled", "holiday")}
+    </section>
+    ${events.length ? `<section class="calendar-agenda">${events.map(renderCalendarEventCard).join("")}</section>` : '<section class="empty-state"><h2>No dates scheduled</h2><p>No calendar entries match the selected month and type.</p></section>'}
+  `;
+  document.querySelectorAll("[data-edit-calendar]").forEach((button) => { button.onclick = () => openCalendarEventForm(events.find((item) => item.EventID === button.dataset.editCalendar)); });
+  document.querySelectorAll("[data-archive-calendar]").forEach((button) => { button.onclick = () => archiveCalendarItem(button.dataset.archiveCalendar); });
+}
+
+function renderCalendarEventCard(event) {
+  const typeClass = String(event.DayType || "event").toLowerCase();
+  const dateRange = event.EndDate && event.EndDate !== event.Date ? `${formatFriendlyDate(event.Date)} – ${formatFriendlyDate(event.EndDate)}` : formatFriendlyDate(event.Date);
+  return `
+    <article class="calendar-event-card type-${typeClass}">
+      <div class="calendar-date-block"><strong>${escapeHtml(getDateDay(event.Date))}</strong><span>${escapeHtml(getDateMonth(event.Date))}</span><small>${escapeHtml(getDateWeekday(event.Date))}</small></div>
+      <div class="calendar-event-content"><div class="calendar-event-meta"><span class="calendar-type-badge">${escapeHtml(event.DayType)}</span><span>${escapeHtml(event.TargetLabel || event.Audience)}</span>${event.Status !== "Published" ? `<span class="status-pill inactive">${escapeHtml(event.Status)}</span>` : ""}</div><h2>${escapeHtml(event.Title)}</h2><p>${escapeHtml(event.Note || "School calendar entry")}</p><small>${escapeHtml(dateRange)} · ${escapeHtml(event.AcademicYear)}</small>${event.DayType === "Holiday" && event.Status === "Published" ? '<div class="attendance-link-note">Attendance is disabled for this date range.</div>' : ""}</div>
+      ${calendarState.permissions.canManage && !event.Legacy ? `<div class="notice-actions"><button class="text-btn" type="button" data-edit-calendar="${escapeHtml(event.EventID)}">Edit</button>${event.Status !== "Archived" ? `<button class="text-btn danger" type="button" data-archive-calendar="${escapeHtml(event.EventID)}">Archive</button>` : ""}</div>` : event.ManagedInSettings && calendarState.permissions.canManage ? '<span class="managed-label">Managed in Settings</span>' : ""}
+    </article>
+  `;
+}
+
+function openCalendarEventForm(event = {}) {
+  const modal = document.createElement("div");
+  modal.className = "modal-backdrop";
+  const selectedYear = event.AcademicYear || calendarState.filters.academicYear || calendarState.academicYears[0] || "";
+  modal.innerHTML = `
+    <form class="student-form calendar-form" id="calendarEventForm">
+      <div class="form-head"><div><span class="section-kicker">${event.EventID ? "Edit Calendar Entry" : "New Calendar Entry"}</span><h2>${event.EventID ? escapeHtml(event.Title) : "Plan an important date"}</h2></div><button class="icon-btn" type="button" data-close-modal>X</button></div>
+      <input type="hidden" name="EventID" value="${escapeHtml(event.EventID || "")}">
+      <div class="field"><label for="calendarTitle">Title</label><input id="calendarTitle" name="Title" maxlength="100" value="${escapeHtml(event.Title || "")}" required></div>
+      <div class="form-grid"><div class="field"><label for="calendarDayType">Type</label><select id="calendarDayType" name="DayType">${calendarState.dayTypes.map((item) => `<option value="${escapeHtml(item)}" ${item === (event.DayType || "Event") ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select></div><div class="field"><label for="calendarAcademicYear">Academic Year</label><select id="calendarAcademicYear" name="AcademicYear">${calendarState.academicYears.map((year) => `<option value="${escapeHtml(year)}" ${year === selectedYear ? "selected" : ""}>${escapeHtml(year)}</option>`).join("")}</select></div></div>
+      <div class="form-grid"><div class="field"><label for="calendarStartDate">Start date</label><input id="calendarStartDate" name="Date" type="date" value="${escapeHtml(event.Date || getTodayDate())}" required></div><div class="field"><label for="calendarEndDate">End date</label><input id="calendarEndDate" name="EndDate" type="date" value="${escapeHtml(event.EndDate || event.Date || getTodayDate())}" required></div></div>
+      <div class="form-grid"><div class="field"><label for="calendarAudience">Audience</label><select id="calendarAudience" name="Audience">${calendarState.audiences.map((item) => `<option value="${escapeHtml(item)}" ${item === (event.Audience || "All") ? "selected" : ""}>${escapeHtml(item)}</option>`).join("")}</select></div><div id="calendarTargetHost"></div></div>
+      <div class="field"><label for="calendarNote">Details</label><textarea id="calendarNote" name="Note" rows="4" maxlength="500">${escapeHtml(event.Note || "")}</textarea></div>
+      <div class="field"><label for="calendarStatus">Publication</label><select id="calendarStatus" name="Status"><option value="Draft" ${event.Status === "Draft" ? "selected" : ""}>Save as draft</option><option value="Published" ${event.Status !== "Draft" && event.Status !== "Archived" ? "selected" : ""}>Publish</option></select></div>
+      <div class="form-note calendar-holiday-guidance">Published holidays automatically disable attendance for every date in the selected range.</div>
+      <button class="primary-btn" id="saveCalendarEventButton" type="submit">Save Calendar Entry</button><div class="message" id="calendarFormMessage"></div>
+    </form>
+  `;
+  document.body.appendChild(modal); bindSimpleModal(modal);
+  const audience = modal.querySelector("#calendarAudience");
+  audience.onchange = () => renderCalendarTarget(audience.value, "");
+  renderCalendarTarget(audience.value, event.TargetValue || "");
+  modal.querySelector("form").onsubmit = submitCalendarEvent;
+}
+
+function renderCalendarTarget(audience, selectedValue) {
+  const host = document.getElementById("calendarTargetHost");
+  if (!host) return;
+  host.innerHTML = audience === "Grade"
+    ? `<div class="field"><label for="calendarTarget">Class</label><select id="calendarTarget" name="TargetValue" required>${calendarState.grades.map((grade) => `<option value="${escapeHtml(grade)}" ${grade === selectedValue ? "selected" : ""}>${escapeHtml(formatGradeLabel(grade))}</option>`).join("")}</select></div>`
+    : '<div class="audience-note">The entry will be visible to the selected audience.</div>';
+}
+
+function submitCalendarEvent(event) {
+  event.preventDefault();
+  const form = event.currentTarget;
+  const data = Object.fromEntries(new FormData(form).entries());
+  const button = document.getElementById("saveCalendarEventButton");
+  const message = document.getElementById("calendarFormMessage");
+  if (data.EndDate < data.Date) { message.textContent = "End date cannot be before the start date."; return; }
+  button.disabled = true; button.textContent = "Saving..."; message.textContent = "";
+  api.saveCalendarEvent(data).then((result) => {
+    if (!result.success) { button.disabled = false; button.textContent = "Save Calendar Entry"; message.textContent = result.message || "Unable to save calendar entry"; return; }
+    form.closest(".modal-backdrop").remove(); loadAcademicCalendar();
+  }).catch((error) => { console.error(error); button.disabled = false; button.textContent = "Save Calendar Entry"; message.textContent = "Unable to save calendar entry"; });
+}
+
+function archiveCalendarItem(eventId) {
+  if (!window.confirm("Archive this calendar entry? It will no longer be visible to families or teachers.")) return;
+  api.archiveCalendarEvent(eventId).then((result) => result.success ? loadAcademicCalendar() : renderCalendarError(result.message || "Unable to archive entry")).catch(() => renderCalendarError("Unable to archive entry"));
+}
+
+function renderCalendarError(message) {
+  const host = document.getElementById("calendarHost");
+  if (host) host.innerHTML = `<div class="message">${escapeHtml(message)}</div>`;
+}
+
 function renderSettingsShell() {
   return `
     <section class="module-header">
@@ -2796,7 +3476,7 @@ function renderSettingsShell() {
       <div class="settings-card-head">
         <div>
           <span>Special Holidays</span>
-          <p>Add sudden holidays or continuous holiday ranges. These records will be used by future Attendance and Academic Calendar modules.</p>
+          <p>Add sudden holidays or continuous holiday ranges. They appear in the Academic Calendar and immediately disable attendance for the selected dates.</p>
         </div>
       </div>
       <form class="holiday-form" id="holidayForm">
@@ -3365,6 +4045,54 @@ function normalizeTimeValue(value) {
   const match = cleanValue.match(/^(\d{1,2}):(\d{2})$/);
   if (!match) return cleanValue;
   return `${match[1].padStart(2, "0")}:${match[2]}`;
+}
+
+function formatCurrency(value) {
+  return new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(Number(value || 0));
+}
+
+function formatFriendlyDate(value) {
+  if (!value) return "Not set";
+  const date = new Date(`${String(value).slice(0, 10)}T00:00:00`);
+  if (Number.isNaN(date.getTime())) return String(value);
+  return date.toLocaleDateString("en-IN", { day: "numeric", month: "short", year: "numeric" });
+}
+
+function getDateDay(value) {
+  const date = new Date(`${String(value || "").slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? "--" : String(date.getDate()).padStart(2, "0");
+}
+
+function getDateMonth(value) {
+  const date = new Date(`${String(value || "").slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-IN", { month: "short" }).toUpperCase();
+}
+
+function getDateWeekday(value) {
+  const date = new Date(`${String(value || "").slice(0, 10)}T00:00:00`);
+  return Number.isNaN(date.getTime()) ? "" : date.toLocaleDateString("en-IN", { weekday: "short" });
+}
+
+function bindSimpleModal(modal) {
+  const close = modal.querySelector("[data-close-modal]");
+  if (close) close.onclick = () => modal.remove();
+  modal.addEventListener("click", (event) => {
+    if (event.target === modal) modal.remove();
+  });
+}
+
+function populateSelect(id, values, emptyLabel, selectedValue) {
+  const select = document.getElementById(id);
+  if (!select) return;
+  const options = (values || []).map((value) =>
+    `<option value="${escapeHtml(value)}" ${String(value) === String(selectedValue || "") ? "selected" : ""}>${escapeHtml(value)}</option>`,
+  );
+  select.innerHTML = `<option value="">${escapeHtml(emptyLabel)}</option>${options.join("")}`;
+  if (selectedValue) select.value = selectedValue;
 }
 
 function uniqueGradeCsvValues(items) {
