@@ -26,8 +26,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="Images/schoollogo.jpeg" />
     <meta name="twitter:card" content="summary" />
-    <link rel="icon" type="image/png" href="Images/schoollogo-modified.png" />
-    <link rel="apple-touch-icon" href="Images/schoollogo-modified.png" />
+    <link rel="icon" type="image/png" href="Images/schoollogo.jpeg" />
+    <link rel="apple-touch-icon" href="Images/schoollogo.jpeg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1386,6 +1386,300 @@
       .hero .hero-stats {
         animation-delay: 0.5s;
       }
+
+      /* Cinematic video hero enhancement */
+      .hero {
+        min-height: 100vh;
+        min-height: 100svh;
+        background: var(--navy-dark) url("Images/school.jpg") center/cover no-repeat;
+        padding: clamp(7rem, 12vh, 9rem) 5% clamp(3.5rem, 8vh, 5rem);
+        display: grid;
+        place-items: center;
+        isolation: isolate;
+      }
+      .hero-video-stage,
+      .hero-video,
+      .hero-video-fallback,
+      .hero-overlay,
+      .hero-grain {
+        position: absolute;
+        inset: 0;
+      }
+      .hero-video-stage {
+        z-index: -4;
+        background: var(--navy-dark);
+      }
+      .hero-video,
+      .hero-video-fallback {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hero-video {
+        opacity: 0;
+        transform: scale(1.035);
+        transition: opacity 1.4s ease, transform 10s ease;
+        will-change: opacity, transform;
+      }
+      .hero-video.active {
+        opacity: 1;
+        transform: scale(1.085);
+      }
+      .hero-video-fallback {
+        z-index: -5;
+        filter: saturate(0.92) contrast(1.04);
+      }
+      .hero-overlay {
+        z-index: -3;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(8, 18, 36, 0.1), rgba(5, 9, 22, 0.42) 64%),
+          linear-gradient(180deg, rgba(8, 12, 28, 0.44), rgba(5, 8, 18, 0.28) 42%, rgba(5, 8, 18, 0.58));
+      }
+      .hero-grain {
+        z-index: -2;
+        opacity: 0.14;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 42px,
+          rgba(201, 168, 76, 0.045) 42px,
+          rgba(201, 168, 76, 0.045) 84px
+        );
+        mix-blend-mode: screen;
+      }
+      .hero-content {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        position: relative;
+        z-index: 2;
+        transform: translateY(0);
+        transition: transform 0.18s ease-out;
+      }
+      .hero-glass {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(1.75rem, 5vw, 3.35rem);
+        border-radius: clamp(24px, 4vw, 38px);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+          rgba(12, 18, 42, 0.32);
+        box-shadow:
+          0 28px 90px rgba(0, 0, 0, 0.36),
+          inset 0 1px 0 rgba(255, 255, 255, 0.24);
+        backdrop-filter: blur(22px) saturate(1.22);
+        -webkit-backdrop-filter: blur(22px) saturate(1.22);
+      }
+      .hero-glass::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(120deg, transparent 0 20%, rgba(255, 255, 255, 0.22) 38%, transparent 56%),
+          radial-gradient(circle at 18% 0%, rgba(201, 168, 76, 0.22), transparent 36%);
+        opacity: 0.55;
+        transform: translateX(-28%);
+      }
+      .hero-badge,
+      .hero h1,
+      .hero .hero-sub,
+      .hero .hero-address,
+      .hero .hero-btns,
+      .hero .hero-stats {
+        position: relative;
+        z-index: 1;
+        animation: heroReveal 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .hero-badge {
+        background: rgba(201, 168, 76, 0.22);
+        border: 1px solid rgba(255, 232, 169, 0.38);
+        color: #f5d986;
+        padding: 7px 16px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        animation-delay: 0.12s;
+      }
+      .hero h1 {
+        font-size: clamp(34px, 6vw, 74px);
+        line-height: 1.04;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 10px 38px rgba(0, 0, 0, 0.34);
+        animation-delay: 0.26s;
+      }
+      .hero-em {
+        font-size: clamp(18px, 2.4vw, 28px);
+      }
+      .hero-sub {
+        color: rgba(245, 248, 255, 0.84);
+        font-size: clamp(15px, 2vw, 19px);
+        max-width: 680px;
+        animation-delay: 0.4s;
+      }
+      .hero-address {
+        color: rgba(231, 235, 248, 0.72);
+        font-size: clamp(12px, 1.7vw, 14px);
+        margin: 0.85rem auto 2rem;
+        max-width: 760px;
+        animation-delay: 0.5s;
+      }
+      .hero-btns {
+        margin-bottom: 2.4rem;
+        animation-delay: 0.62s;
+      }
+      .hero-stats {
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        animation-delay: 0.78s;
+      }
+      .stat-item {
+        min-width: 92px;
+      }
+      .hero .stat-num {
+        color: #f4d67f;
+      }
+      .hero .stat-label {
+        color: rgba(235, 238, 249, 0.68);
+      }
+      .btn-gold {
+        box-shadow: 0 14px 34px rgba(201, 168, 76, 0.24);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      }
+      .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(201, 168, 76, 0.32);
+      }
+      .btn-outline-gold {
+        background: rgba(255, 255, 255, 0.07);
+        color: #f1d27b;
+        border-color: rgba(241, 210, 123, 0.82);
+        transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+      }
+      .btn-outline-gold:hover {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: #fff0b8;
+        transform: translateY(-2px);
+      }
+      .btn-video {
+        display: none;
+        font-family: inherit;
+      }
+      .hero.has-video .btn-video {
+        display: inline-block;
+      }
+      .campus-video-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 5%;
+        background: rgba(4, 7, 18, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .campus-video-modal.open {
+        display: flex;
+      }
+      .campus-video-dialog {
+        width: min(980px, 100%);
+        background: rgba(13, 13, 48, 0.86);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 24px;
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+        padding: 14px;
+        position: relative;
+      }
+      .campus-video-dialog video {
+        width: 100%;
+        max-height: 78vh;
+        border-radius: 16px;
+        display: block;
+        background: #000;
+      }
+      .campus-video-close {
+        position: absolute;
+        top: -16px;
+        right: -16px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--navy);
+        font-size: 20px;
+        cursor: pointer;
+      }
+      @keyframes heroReveal {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+          filter: blur(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
+      @media (max-width: 768px) {
+        .hero {
+          min-height: 92vh;
+          min-height: 92svh;
+          padding: 6.25rem 5% 3rem;
+        }
+        .hero-glass {
+          border-radius: 24px;
+          padding: 1.45rem;
+          background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
+            rgba(10, 16, 38, 0.54);
+        }
+        .hero-btns a,
+        .hero-btns button {
+          width: min(100%, 320px);
+        }
+        .hero-stats {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+        }
+        .stat-item:last-child {
+          grid-column: span 2;
+        }
+      }
+      @media (max-width: 480px) {
+        .hero {
+          min-height: 96vh;
+          min-height: 96svh;
+        }
+        .hero h1 {
+          font-size: clamp(31px, 11vw, 46px);
+        }
+        .hero-address {
+          margin-bottom: 1.5rem;
+        }
+        .campus-video-close {
+          top: -12px;
+          right: -8px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-video,
+        .hero-video.active,
+        .hero-content,
+        .hero-badge,
+        .hero h1,
+        .hero .hero-sub,
+        .hero .hero-address,
+        .hero .hero-btns,
+        .hero .hero-stats {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1411,7 +1705,7 @@
         <li><a href="#academics">Academics</a></li>
         <li><a href="#sports">Sports</a></li>
         <li><a href="#principal">Leadership</a></li>
-        <li><a href="/erp/">School Portal</a></li>
+        <li><a href="/erp">School Portal</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
       <a href="#admissions" class="nav-cta">Apply Now</a>
@@ -1432,7 +1726,7 @@
       <a href="#academics" onclick="toggleMenu()">Academics</a>
       <a href="#sports" onclick="toggleMenu()">Sports & Activities</a>
       <a href="#principal" onclick="toggleMenu()">Principal's Message</a>
-      <a href="/erp/" onclick="toggleMenu()">School Portal</a>
+      <a href="/erp" onclick="toggleMenu()">School Portal</a>
       <a href="#admissions" onclick="toggleMenu()">Admissions</a>
       <a href="#contact" onclick="toggleMenu()">Contact</a>
     </div>
@@ -1440,46 +1734,79 @@
     <main id="main-content">
       <!-- HERO -->
       <section id="home" class="hero">
-        <div class="hero-badge">
-          <img class="inline-logo" src="Images/schoollogo.jpeg" alt="" /> An
-          Initiative by Pinnacle Educational Society
+        <div class="hero-video-stage" id="heroVideoStage" aria-hidden="true">
+          <img
+            class="hero-video-fallback"
+            src="Images/school.jpg"
+            alt=""
+            loading="eager"
+            decoding="async"
+          />
         </div>
-        <h1>Pinnacle Upper Primary School <span class="hero-em">E/M</span></h1>
-        <p class="hero-sub">
-          Innovative Learning For a Brighter Future · Nursery to Class VII ·
-          CBSE Syllabus · English Medium
-        </p>
-        <p class="hero-address">
-          📍 H.No: 10-221/D, Dumala Road, Yellareddypet, Pin: 505303, Rajanna
-          Sircilla Dist, Telangana State
-        </p>
-        <div class="hero-btns">
-          <a href="#admissions" class="btn-gold">Apply for Admission 2026–27</a>
-          <a href="#about" class="btn-outline-gold">Learn More</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <div class="stat-num">100+</div>
-            <div class="stat-label">Students</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">10+</div>
-            <div class="stat-label">Teachers</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">Nursery–VII</div>
-            <div class="stat-label">Classes Offered</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">CBSE</div>
-            <div class="stat-label">Curriculum</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">2026–27</div>
-            <div class="stat-label">Admissions Open</div>
+        <div class="hero-overlay" aria-hidden="true"></div>
+        <div class="hero-grain" aria-hidden="true"></div>
+        <div class="hero-content">
+          <div class="hero-glass">
+            <div class="hero-badge">
+              <img class="inline-logo" src="Images/schoollogo.jpeg" alt="" /> An
+              Initiative by Pinnacle Educational Society
+            </div>
+            <h1>Pinnacle Upper Primary School <span class="hero-em">E/M</span></h1>
+            <p class="hero-sub">
+              Innovative Learning For a Brighter Future · Nursery to Class VII ·
+              CBSE Syllabus · English Medium
+            </p>
+            <p class="hero-address">
+              📍 H.No: 10-221/D, Dumala Road, Yellareddypet, Pin: 505303, Rajanna
+              Sircilla Dist, Telangana State
+            </p>
+            <div class="hero-btns">
+              <a href="#admissions" class="btn-gold">Apply for Admission 2026–27</a>
+              <a href="#about" class="btn-outline-gold">Learn More</a>
+              <button class="btn-outline-gold btn-video" id="watchCampusVideo" type="button">
+                Watch Campus Life
+              </button>
+            </div>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <div class="stat-num">100+</div>
+                <div class="stat-label">Students</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">10+</div>
+                <div class="stat-label">Teachers</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">Nursery–VII</div>
+                <div class="stat-label">Classes Offered</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">CBSE</div>
+                <div class="stat-label">Curriculum</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">2026–27</div>
+                <div class="stat-label">Admissions Open</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
+
+      <div
+        class="campus-video-modal"
+        id="campusVideoModal"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Campus life video"
+      >
+        <div class="campus-video-dialog">
+          <button class="campus-video-close" id="closeCampusVideo" type="button" aria-label="Close video">
+            &times;
+          </button>
+          <video id="campusVideoPlayer" controls playsinline preload="metadata"></video>
+        </div>
+      </div>
 
       <!-- ADMISSION STRIP -->
       <div class="admission-strip">
@@ -2465,6 +2792,128 @@
     </footer>
 
     <script>
+      var heroVideoFiles = [
+        "Videos/morning-assembly.mp4",
+        "Videos/preschool-prayer.mp4",
+        "Videos/campus-activities.mp4",
+        "Videos/school-life.mp4",
+      ];
+
+      function initHeroVideos() {
+        var hero = document.getElementById("home");
+        var stage = document.getElementById("heroVideoStage");
+        var watchButton = document.getElementById("watchCampusVideo");
+        var modal = document.getElementById("campusVideoModal");
+        var closeButton = document.getElementById("closeCampusVideo");
+        var player = document.getElementById("campusVideoPlayer");
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (!hero || !stage || !heroVideoFiles.length) return;
+
+        var videos = [];
+        var activeIndex = 0;
+        var rotationTimer = null;
+
+        function createHeroVideo(src, index) {
+          var video = document.createElement("video");
+          video.className = "hero-video";
+          video.muted = true;
+          video.loop = true;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.setAttribute("muted", "");
+          video.setAttribute("playsinline", "");
+          video.preload = index === 0 ? "auto" : "metadata";
+          video.src = src;
+          video.addEventListener("canplay", function () {
+            if (videos.indexOf(video) === -1) {
+              videos.push(video);
+              hero.classList.add("has-video");
+              if (videos.length === 1) {
+                activateVideo(0);
+                setupCampusModal(src);
+              }
+              if (videos.length === 2 && !rotationTimer && !reduceMotion) {
+                rotationTimer = window.setInterval(showNextVideo, 10000);
+              }
+            }
+          });
+          video.addEventListener("error", function () {
+            video.remove();
+          });
+          stage.appendChild(video);
+          video.load();
+        }
+
+        function activateVideo(index) {
+          if (!videos.length) return;
+          activeIndex = index % videos.length;
+          videos.forEach(function (video, videoIndex) {
+            var isActive = videoIndex === activeIndex;
+            video.classList.toggle("active", isActive);
+            if (isActive) {
+              video.play().catch(function () {});
+              setupCampusModal(video.currentSrc || video.src);
+            } else {
+              video.pause();
+            }
+          });
+        }
+
+        function showNextVideo() {
+          activateVideo(activeIndex + 1);
+        }
+
+        function setupCampusModal(src) {
+          if (!watchButton || !modal || !closeButton || !player || !src) return;
+          watchButton.onclick = function () {
+            player.src = src;
+            modal.classList.add("open");
+            player.play().catch(function () {});
+          };
+          closeButton.onclick = closeCampusModal;
+          modal.onclick = function (event) {
+            if (event.target === modal) closeCampusModal();
+          };
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && modal.classList.contains("open")) {
+              closeCampusModal();
+            }
+          });
+        }
+
+        function closeCampusModal() {
+          modal.classList.remove("open");
+          player.pause();
+          player.removeAttribute("src");
+          player.load();
+        }
+
+        heroVideoFiles.forEach(createHeroVideo);
+
+        if (!reduceMotion) {
+          var ticking = false;
+          window.addEventListener(
+            "scroll",
+            function () {
+              if (ticking) return;
+              ticking = true;
+              window.requestAnimationFrame(function () {
+                var content = hero.querySelector(".hero-content");
+                if (content) {
+                  var offset = Math.min(window.scrollY * 0.04, 18);
+                  content.style.transform = "translateY(" + offset + "px)";
+                }
+                ticking = false;
+              });
+            },
+            { passive: true },
+          );
+        }
+      }
+
+      initHeroVideos();
+
       // Mobile menu
       function toggleMenu() {
         var menu = document.getElementById("mobileMenu");
