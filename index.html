@@ -1391,11 +1391,14 @@
       .hero {
         min-height: 100vh;
         min-height: 100svh;
-        background: var(--navy-dark) url("Images/school.jpg") center/cover no-repeat;
+        background: var(--navy-dark) url("Images/school1.jpg") center/cover no-repeat;
         padding: clamp(7rem, 12vh, 9rem) 5% clamp(3.5rem, 8vh, 5rem);
         display: grid;
         place-items: center;
         isolation: isolate;
+      }
+      .hero::before {
+        display: none;
       }
       .hero-video-stage,
       .hero-video,
@@ -1406,7 +1409,7 @@
         inset: 0;
       }
       .hero-video-stage {
-        z-index: -4;
+        z-index: 0;
         background: var(--navy-dark);
       }
       .hero-video,
@@ -1426,17 +1429,17 @@
         transform: scale(1.085);
       }
       .hero-video-fallback {
-        z-index: -5;
+        z-index: 0;
         filter: saturate(0.92) contrast(1.04);
       }
       .hero-overlay {
-        z-index: -3;
+        z-index: 1;
         background:
           radial-gradient(circle at 50% 42%, rgba(8, 18, 36, 0.1), rgba(5, 9, 22, 0.42) 64%),
           linear-gradient(180deg, rgba(8, 12, 28, 0.44), rgba(5, 8, 18, 0.28) 42%, rgba(5, 8, 18, 0.58));
       }
       .hero-grain {
-        z-index: -2;
+        z-index: 2;
         opacity: 0.14;
         background: repeating-linear-gradient(
           45deg,
@@ -1451,7 +1454,7 @@
         width: min(980px, 100%);
         margin: 0 auto;
         position: relative;
-        z-index: 2;
+        z-index: 3;
         transform: translateY(0);
         transition: transform 0.18s ease-out;
       }
@@ -1625,9 +1628,8 @@
       }
       @media (max-width: 768px) {
         .hero {
-          min-height: 92vh;
-          min-height: 92svh;
-          padding: 6.25rem 5% 3rem;
+          min-height: auto;
+          padding: 5.4rem 5% 2.25rem;
         }
         .hero-glass {
           border-radius: 24px;
@@ -1651,8 +1653,8 @@
       }
       @media (max-width: 480px) {
         .hero {
-          min-height: 96vh;
-          min-height: 96svh;
+          min-height: auto;
+          padding-top: 5.1rem;
         }
         .hero h1 {
           font-size: clamp(31px, 11vw, 46px);
@@ -1678,6 +1680,294 @@
           animation: none !important;
           transition: none !important;
           transform: none !important;
+        }
+      }
+
+      /* Premium mobile hero and campus life section */
+      @media (max-width: 768px) {
+        .hero.mobile-poster {
+          min-height: auto;
+          padding: 5.25rem 5% 2.25rem;
+          place-items: center;
+          background-position: center top;
+        }
+        .hero.mobile-poster .hero-video-stage::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(5, 8, 18, 0.18), rgba(5, 8, 18, 0.28) 42%, rgba(5, 8, 18, 0.72)),
+            radial-gradient(circle at 50% 18%, transparent 0 34%, rgba(5, 8, 18, 0.46) 82%);
+        }
+        .hero.mobile-poster .hero-video-fallback {
+          object-position: center top;
+          transform: scale(1.01);
+        }
+        .hero.mobile-poster .hero-overlay {
+          background: linear-gradient(180deg, rgba(5, 8, 18, 0.1), rgba(5, 8, 18, 0.62));
+        }
+        .hero.mobile-poster .hero-grain {
+          opacity: 0.08;
+        }
+        .hero.mobile-poster .hero-content {
+          transform: none !important;
+        }
+        .hero.mobile-poster .hero-glass {
+          width: 100%;
+          margin-top: 0;
+          border-radius: 22px;
+          padding: 1.2rem;
+          background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07)),
+            rgba(11, 17, 38, 0.58);
+          box-shadow: 0 18px 52px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+          backdrop-filter: blur(16px) saturate(1.16);
+          -webkit-backdrop-filter: blur(16px) saturate(1.16);
+        }
+        .hero.mobile-poster .hero-badge {
+          margin-bottom: 1rem;
+          font-size: 11px;
+          padding: 6px 12px;
+        }
+        .hero.mobile-poster .hero-sub {
+          margin-top: 0.75rem;
+          line-height: 1.5;
+        }
+        .hero.mobile-poster .hero-address {
+          margin: 0.75rem auto 1.25rem;
+        }
+        .hero.mobile-poster .hero-btns {
+          gap: 10px;
+          margin-bottom: 1.35rem;
+        }
+        .hero.mobile-poster .hero-stats {
+          padding-top: 1.2rem;
+          gap: 0.75rem;
+        }
+        .hero.mobile-poster .stat-item {
+          min-width: 0;
+          padding: 0.72rem 0.55rem;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      .campus-life-wrap {
+        max-width: 1180px;
+        margin: 2.8rem auto 0;
+      }
+      .campus-life-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-auto-rows: 150px;
+        gap: 16px;
+      }
+      .campus-card {
+        position: relative;
+        overflow: hidden;
+        border: none;
+        border-radius: 24px;
+        padding: 0;
+        background: var(--navy-mid);
+        cursor: pointer;
+        box-shadow: 0 18px 46px rgba(13, 13, 48, 0.12);
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease,
+          box-shadow 0.3s ease;
+      }
+      .campus-card.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .campus-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 24px 62px rgba(13, 13, 48, 0.18);
+      }
+      .campus-card.large {
+        grid-column: span 3;
+        grid-row: span 2;
+      }
+      .campus-card.wide {
+        grid-column: span 3;
+      }
+      .campus-card.tall {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+      .campus-card.small {
+        grid-column: span 2;
+      }
+      .campus-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.02);
+        transition: transform 0.7s ease, filter 0.7s ease;
+      }
+      .campus-card:hover img {
+        transform: scale(1.08);
+        filter: saturate(1.08) contrast(1.03);
+      }
+      .campus-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(180deg, transparent 28%, rgba(7, 12, 30, 0.76)),
+          linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 38%);
+        opacity: 0.9;
+      }
+      .campus-card::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        bottom: -30%;
+        left: -45%;
+        width: 34%;
+        z-index: 2;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+        transform: rotate(18deg);
+        transition: left 0.75s ease;
+      }
+      .campus-card:hover::after {
+        left: 115%;
+      }
+      .campus-caption {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        z-index: 3;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px) saturate(1.16);
+        -webkit-backdrop-filter: blur(14px) saturate(1.16);
+        color: #fff;
+        text-align: left;
+      }
+      .campus-caption strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: clamp(17px, 2vw, 23px);
+        line-height: 1.1;
+      }
+      .campus-caption span {
+        display: block;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .campus-caption em {
+        flex: 0 0 auto;
+        color: var(--gold);
+        font-style: normal;
+        font-size: 18px;
+      }
+      .campus-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 2100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 5%;
+        background: rgba(4, 7, 18, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .campus-lightbox.open {
+        display: flex;
+      }
+      .campus-lightbox-card {
+        width: min(1040px, 100%);
+        position: relative;
+      }
+      .campus-lightbox-card img {
+        width: 100%;
+        max-height: 78vh;
+        object-fit: contain;
+        display: block;
+        border-radius: 24px;
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
+        background: #050814;
+      }
+      .campus-lightbox-caption {
+        color: #fff;
+        margin-top: 14px;
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        text-align: center;
+      }
+      .campus-lightbox-close {
+        position: absolute;
+        top: -18px;
+        right: -18px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--navy);
+        font-size: 22px;
+        cursor: pointer;
+      }
+      @media (max-width: 900px) {
+        .campus-life-grid {
+          grid-template-columns: repeat(4, 1fr);
+          grid-auto-rows: 140px;
+        }
+        .campus-card.large,
+        .campus-card.wide {
+          grid-column: span 4;
+        }
+        .campus-card.tall,
+        .campus-card.small {
+          grid-column: span 2;
+        }
+      }
+      @media (max-width: 560px) {
+        .campus-life-wrap {
+          margin-top: 2rem;
+        }
+        .campus-life-grid {
+          display: flex;
+          overflow-x: auto;
+          gap: 14px;
+          padding: 0 5% 12px;
+          margin: 0 -5%;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+        }
+        .campus-card,
+        .campus-card.large,
+        .campus-card.wide,
+        .campus-card.tall,
+        .campus-card.small {
+          flex: 0 0 82%;
+          height: 330px;
+          scroll-snap-align: center;
+          border-radius: 22px;
+        }
+        .campus-card:nth-child(even) {
+          flex-basis: 74%;
+        }
+        .campus-caption {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          padding: 11px 12px;
         }
       }
     </style>
@@ -1995,7 +2285,7 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Annual Sports Day</div>
+              <div class="sports-img-overlay">School Life</div>
             </div>
             <div class="sports-img-card">
               <img
@@ -2004,7 +2294,7 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Inter-School Football</div>
+              <div class="sports-img-overlay">Campus</div>
             </div>
             <div class="sports-img-card">
               <img
@@ -2013,16 +2303,16 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Badminton & Indoor Sports</div>
+              <div class="sports-img-overlay">Sports Activities</div>
             </div>
             <div class="sports-img-card">
               <img
-                src="Images/sports4.jpg"
+                src="Images/gallery2.jpg"
                 alt="Students taking part in arts and creative activities"
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Art & Craft Activities</div>
+              <div class="sports-img-overlay">Moments at Pinnacle</div>
             </div>
           </div>
 
@@ -2133,72 +2423,33 @@
       <!-- GALLERY -->
       <section id="gallery" class="section-alt" aria-labelledby="gallery-title">
         <div class="section-center">
-          <span class="section-tag">Gallery</span>
-          <h2 class="section-title" id="gallery-title">Life at Pinnacle</h2>
+          <span class="section-tag">Campus Life</span>
+          <h2 class="section-title" id="gallery-title">Moments That Shape Childhood</h2>
           <p class="section-desc">
-            A glimpse of the vibrant, joyful, and enriching school life at
-            Pinnacle.
+            Assembly, prayer, play, creativity, and classroom curiosity come
+            together to create a warm school day at Pinnacle.
           </p>
         </div>
-        <div style="max-width: 900px; margin: 2.5rem auto 0">
-          <div class="gallery-grid">
-            <div class="gallery-item">
-              <img
-                src="Images/school.jpg"
-                alt="Main gallery image of school activities"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Life at Pinnacle</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery1.jpg"
-                alt="Happy students learning"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Students & Learning</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery2.jpg"
-                alt="Annual sports day event"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Annual Sports Day</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery3.jpg"
-                alt="Students doing arts and crafts"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Creative Activities</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery4.jpg"
-                alt="Students learning robotics"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Robotics Program</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery5.jpg"
-                alt="Students performing in cultural events"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Cultural Fest</div>
-            </div>
-          </div>
+        <div class="campus-life-wrap">
+          <div class="campus-life-grid" id="campusLifeGrid" aria-live="polite"></div>
         </div>
       </section>
+
+      <div
+        class="campus-lightbox"
+        id="campusLightbox"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Campus life image preview"
+      >
+        <div class="campus-lightbox-card">
+          <button class="campus-lightbox-close" id="campusLightboxClose" type="button" aria-label="Close image preview">
+            &times;
+          </button>
+          <img id="campusLightboxImage" src="" alt="" />
+          <div class="campus-lightbox-caption" id="campusLightboxCaption"></div>
+        </div>
+      </div>
 
       <!-- NOTICE BOARD -->
       <section id="notices" aria-labelledby="notices-title">
@@ -2793,10 +3044,61 @@
 
     <script>
       var heroVideoFiles = [
-        "Videos/morning-assembly.mp4",
-        "Videos/preschool-prayer.mp4",
-        "Videos/campus-activities.mp4",
-        "Videos/school-life.mp4",
+        "Videos/hero/morning-assembly.mp4",
+        "Videos/hero/preschool-prayer.mp4",
+        "Videos/hero/campus-activities.mp4",
+        "Videos/hero/school-life.mp4",
+      ];
+
+      var campusLifeItems = [
+        {
+          title: "Morning Assembly",
+          caption: "A disciplined and joyful start to the school day",
+          image: "Images/school.jpg",
+          size: "large",
+        },
+        {
+          title: "Preschool Prayer",
+          caption: "Gentle routines that build confidence and belonging",
+          image: "Images/gallery1.jpg",
+          size: "tall",
+        },
+        {
+          title: "Creative Classrooms",
+          caption: "Hands-on learning through colour, craft, and curiosity",
+          image: "Images/gallery3.jpg",
+          size: "wide",
+        },
+        {
+          title: "Everyday Excellence",
+          caption: "Early exposure to technology and problem-solving",
+          image: "Images/gallery4.jpg",
+          size: "small",
+        },
+        {
+          title: "Life at Pinnacle",
+          caption: "Energy, teamwork, and healthy competition",
+          image: "Images/gallery2.jpg",
+          size: "small",
+        },
+        {
+          title: "Growing Together",
+          caption: "Confidence on stage through expression and tradition",
+          image: "Images/gallery5.jpg",
+          size: "wide",
+        },
+        {
+          title: "Learning Beyond Books",
+          caption: "Building stamina, focus, and team spirit",
+          image: "Images/sports2.jpg",
+          size: "small",
+        },
+        {
+          title: "Campus Celebrations",
+          caption: "School memories that children carry home",
+          image: "Images/sports1.jpg",
+          size: "small",
+        },
       ];
 
       function initHeroVideos() {
@@ -2807,8 +3109,13 @@
         var closeButton = document.getElementById("closeCampusVideo");
         var player = document.getElementById("campusVideoPlayer");
         var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var mobileHero = window.matchMedia("(max-width: 768px)").matches;
 
         if (!hero || !stage || !heroVideoFiles.length) return;
+        if (mobileHero) {
+          hero.classList.add("mobile-poster");
+          return;
+        }
 
         var videos = [];
         var activeIndex = 0;
@@ -2913,6 +3220,101 @@
       }
 
       initHeroVideos();
+
+      function initCampusLifeGallery() {
+        var grid = document.getElementById("campusLifeGrid");
+        var lightbox = document.getElementById("campusLightbox");
+        var lightboxImage = document.getElementById("campusLightboxImage");
+        var lightboxCaption = document.getElementById("campusLightboxCaption");
+        var closeButton = document.getElementById("campusLightboxClose");
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (!grid) return;
+
+        grid.innerHTML = campusLifeItems
+          .map(function (item, index) {
+            return (
+              '<button class="campus-card ' +
+              escapeHtml(item.size || "small") +
+              '" type="button" data-campus-index="' +
+              index +
+              '">' +
+              '<img src="' +
+              escapeHtml(item.image) +
+              '" alt="' +
+              escapeHtml(item.title + " at Pinnacle Upper Primary School") +
+              '" loading="lazy" decoding="async">' +
+              '<span class="campus-caption"><span><strong>' +
+              escapeHtml(item.title) +
+              "</strong><span>" +
+              escapeHtml(item.caption) +
+              '</span></span><em>+</em></span></button>'
+            );
+          })
+          .join("");
+
+        function revealCards() {
+          var cards = Array.prototype.slice.call(document.querySelectorAll(".campus-card"));
+          if (reduceMotion || !("IntersectionObserver" in window)) {
+            cards.forEach(function (card) {
+              card.classList.add("revealed");
+            });
+            return;
+          }
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("revealed");
+                  observer.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.18 },
+          );
+          cards.forEach(function (card, index) {
+            card.style.transitionDelay = Math.min(index * 70, 420) + "ms";
+            observer.observe(card);
+          });
+        }
+
+        function openCampusImage(index) {
+          var item = campusLifeItems[index];
+          if (!item || !lightbox || !lightboxImage || !lightboxCaption) return;
+          lightboxImage.src = item.image;
+          lightboxImage.alt = item.title + " at Pinnacle Upper Primary School";
+          lightboxCaption.textContent = item.title;
+          lightbox.classList.add("open");
+        }
+
+        function closeCampusImage() {
+          if (!lightbox || !lightboxImage) return;
+          lightbox.classList.remove("open");
+          lightboxImage.removeAttribute("src");
+        }
+
+        grid.addEventListener("click", function (event) {
+          var card = event.target.closest("[data-campus-index]");
+          if (!card) return;
+          openCampusImage(Number(card.getAttribute("data-campus-index")));
+        });
+
+        if (closeButton) closeButton.addEventListener("click", closeCampusImage);
+        if (lightbox) {
+          lightbox.addEventListener("click", function (event) {
+            if (event.target === lightbox) closeCampusImage();
+          });
+        }
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && lightbox && lightbox.classList.contains("open")) {
+            closeCampusImage();
+          }
+        });
+
+        revealCards();
+      }
+
+      initCampusLifeGallery();
 
       // Mobile menu
       function toggleMenu() {
