@@ -1970,6 +1970,83 @@
           padding: 11px 12px;
         }
       }
+
+      /* Hero reset: restore the original clean Pinnacle landing section. */
+      .hero {
+        min-height: auto !important;
+        display: block !important;
+        padding: 5rem 5% 4rem !important;
+        text-align: center;
+        background: var(--navy-dark) !important;
+        isolation: auto;
+      }
+      .hero::before {
+        content: "";
+        display: block !important;
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 35px,
+          rgba(201, 168, 76, 0.035) 35px,
+          rgba(201, 168, 76, 0.035) 70px
+        );
+        pointer-events: none;
+      }
+      .hero-video-stage,
+      .hero-overlay,
+      .hero-grain,
+      .campus-video-modal,
+      .btn-video {
+        display: none !important;
+      }
+      .hero-content {
+        width: auto;
+        max-width: none;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        transform: none !important;
+        transition: none;
+      }
+      .hero-glass {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        overflow: visible;
+      }
+      .hero-glass::before {
+        display: none;
+      }
+      .hero-badge {
+        background: rgba(201, 168, 76, 0.15);
+        border: 1px solid rgba(201, 168, 76, 0.35);
+        color: var(--gold);
+      }
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4.8rem);
+        text-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+      }
+      .hero-sub {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .hero-address {
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .hero-stats {
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        padding-top: 2rem;
+      }
+      @media (max-width: 768px) {
+        .hero {
+          padding: 4.5rem 5% 3rem !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1995,7 +2072,7 @@
         <li><a href="#academics">Academics</a></li>
         <li><a href="#sports">Sports</a></li>
         <li><a href="#principal">Leadership</a></li>
-        <li><a href="/erp/">School Portal</a></li>
+        <li><a href="/erp">School Portal</a></li>
         <li><a href="#contact">Contact</a></li>
       </ul>
       <a href="#admissions" class="nav-cta">Apply Now</a>
@@ -2016,7 +2093,7 @@
       <a href="#academics" onclick="toggleMenu()">Academics</a>
       <a href="#sports" onclick="toggleMenu()">Sports & Activities</a>
       <a href="#principal" onclick="toggleMenu()">Principal's Message</a>
-      <a href="/erp/" onclick="toggleMenu()">School Portal</a>
+      <a href="/erp" onclick="toggleMenu()">School Portal</a>
       <a href="#admissions" onclick="toggleMenu()">Admissions</a>
       <a href="#contact" onclick="toggleMenu()">Contact</a>
     </div>
@@ -2024,17 +2101,6 @@
     <main id="main-content">
       <!-- HERO -->
       <section id="home" class="hero">
-        <div class="hero-video-stage" id="heroVideoStage" aria-hidden="true">
-          <img
-            class="hero-video-fallback"
-            src="Images/school.jpg"
-            alt=""
-            loading="eager"
-            decoding="async"
-          />
-        </div>
-        <div class="hero-overlay" aria-hidden="true"></div>
-        <div class="hero-grain" aria-hidden="true"></div>
         <div class="hero-content">
           <div class="hero-glass">
             <div class="hero-badge">
@@ -2053,9 +2119,6 @@
             <div class="hero-btns">
               <a href="#admissions" class="btn-gold">Apply for Admission 2026–27</a>
               <a href="#about" class="btn-outline-gold">Learn More</a>
-              <button class="btn-outline-gold btn-video" id="watchCampusVideo" type="button">
-                Watch Campus Life
-              </button>
             </div>
             <div class="hero-stats">
               <div class="stat-item">
@@ -2082,21 +2145,6 @@
           </div>
         </div>
       </section>
-
-      <div
-        class="campus-video-modal"
-        id="campusVideoModal"
-        role="dialog"
-        aria-modal="true"
-        aria-label="Campus life video"
-      >
-        <div class="campus-video-dialog">
-          <button class="campus-video-close" id="closeCampusVideo" type="button" aria-label="Close video">
-            &times;
-          </button>
-          <video id="campusVideoPlayer" controls playsinline preload="metadata"></video>
-        </div>
-      </div>
 
       <!-- ADMISSION STRIP -->
       <div class="admission-strip">
@@ -3042,64 +3090,11 @@
       </div>
     </footer>
 
+    <script src="media-config.js"></script>
     <script>
-      var heroVideoFiles = [
-        "Videos/hero/morning-assembly.mp4",
-        "Videos/hero/preschool-prayer.mp4",
-        "Videos/hero/campus-activities.mp4",
-        "Videos/hero/school-life.mp4",
-      ];
-
-      var campusLifeItems = [
-        {
-          title: "Morning Assembly",
-          caption: "A disciplined and joyful start to the school day",
-          image: "Images/school.jpg",
-          size: "large",
-        },
-        {
-          title: "Preschool Prayer",
-          caption: "Gentle routines that build confidence and belonging",
-          image: "Images/gallery1.jpg",
-          size: "tall",
-        },
-        {
-          title: "Creative Classrooms",
-          caption: "Hands-on learning through colour, craft, and curiosity",
-          image: "Images/gallery3.jpg",
-          size: "wide",
-        },
-        {
-          title: "Everyday Excellence",
-          caption: "Early exposure to technology and problem-solving",
-          image: "Images/gallery4.jpg",
-          size: "small",
-        },
-        {
-          title: "Life at Pinnacle",
-          caption: "Energy, teamwork, and healthy competition",
-          image: "Images/gallery2.jpg",
-          size: "small",
-        },
-        {
-          title: "Growing Together",
-          caption: "Confidence on stage through expression and tradition",
-          image: "Images/gallery5.jpg",
-          size: "wide",
-        },
-        {
-          title: "Learning Beyond Books",
-          caption: "Building stamina, focus, and team spirit",
-          image: "Images/sports2.jpg",
-          size: "small",
-        },
-        {
-          title: "Campus Celebrations",
-          caption: "School memories that children carry home",
-          image: "Images/sports1.jpg",
-          size: "small",
-        },
-      ];
+      var siteMedia = window.PINNACLE_MEDIA_CONFIG || {};
+      var heroVideoFiles = [];
+      var campusLifeItems = Array.isArray(siteMedia.gallery) ? siteMedia.gallery : [];
 
       function initHeroVideos() {
         var hero = document.getElementById("home");
