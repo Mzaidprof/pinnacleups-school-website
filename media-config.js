@@ -40,13 +40,13 @@ window.PINNACLE_MEDIA_CONFIG = {
     {
       "title": "Independence Day",
       "caption": "A proud celebration of freedom, unity, and school spirit.",
-      "image": "Images/gallery/independence-day-2026/independence-day-02.jpeg",
+      "image": "Images/gallery/Independenceday1.jpeg",
       "size": "small"
     },
     {
       "title": "School",
       "caption": "Moments from learning and school life at Pinnacle.",
-      "image": "Images/gallery/school1.jpg",
+      "image": "Images/gallery/Independenceday2.jpeg",
       "size": "small"
     },
     {
