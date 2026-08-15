@@ -34,7 +34,7 @@ window.PINNACLE_MEDIA_CONFIG = {
     {
       "title": "Independence Day",
       "caption": "A proud celebration of freedom, unity, and school spirit.",
-      "image": "Images/gallery/independence-day-2026/independence-day-01.jpeg",
+      "image": "Images/gallery/independenceday3.jpeg",
       "size": "wide"
     },
     {
