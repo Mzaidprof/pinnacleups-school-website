@@ -1971,6 +1971,319 @@
         }
       }
 
+      /* Gallery reset: one-folder, uniform premium image wall. */
+      .nav-hamburger {
+        position: relative;
+        width: 44px;
+        height: 44px;
+        align-items: center;
+        justify-content: center;
+        gap: 5px;
+        border-radius: 999px;
+        overflow: hidden;
+        transition:
+          transform 0.32s cubic-bezier(0.2, 0.8, 0.2, 1),
+          background 0.32s ease,
+          box-shadow 0.32s ease;
+      }
+      .nav-hamburger::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background:
+          linear-gradient(120deg, transparent 0 25%, rgba(255, 255, 255, 0.26) 42%, transparent 62%),
+          rgba(255, 255, 255, 0.04);
+        transform: translateX(-130%);
+        transition: transform 0.72s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .nav-hamburger:hover,
+      .nav-hamburger.active {
+        background: rgba(255, 255, 255, 0.08);
+        box-shadow: 0 12px 28px rgba(0, 0, 0, 0.22);
+      }
+      .nav-hamburger:hover::before,
+      .nav-hamburger.active::before {
+        transform: translateX(130%);
+      }
+      .nav-hamburger span {
+        position: relative;
+        z-index: 1;
+        transform-origin: center;
+      }
+      .nav-hamburger.active span:nth-child(1) {
+        transform: translateY(7px) rotate(45deg);
+        background: var(--gold);
+      }
+      .nav-hamburger.active span:nth-child(2) {
+        opacity: 0;
+        transform: scaleX(0);
+      }
+      .nav-hamburger.active span:nth-child(3) {
+        transform: translateY(-7px) rotate(-45deg);
+        background: var(--gold);
+      }
+      .mobile-menu {
+        display: flex !important;
+        opacity: 0;
+        visibility: hidden;
+        pointer-events: none;
+        transform: translateY(-16px) scale(0.98);
+        transform-origin: top center;
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.02)),
+          rgba(8, 17, 39, 0.96);
+        box-shadow: 0 26px 60px rgba(0, 0, 0, 0.26);
+        backdrop-filter: blur(18px) saturate(1.2);
+        -webkit-backdrop-filter: blur(18px) saturate(1.2);
+        overflow: hidden;
+        transition:
+          opacity 0.34s ease,
+          visibility 0.34s ease,
+          transform 0.42s cubic-bezier(0.16, 1, 0.3, 1);
+      }
+      .mobile-menu::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        bottom: 0;
+        left: -42%;
+        width: 32%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.16), transparent);
+        transform: skewX(-18deg);
+      }
+      .mobile-menu.open {
+        opacity: 1;
+        visibility: visible;
+        pointer-events: auto;
+        transform: translateY(0) scale(1);
+      }
+      .mobile-menu.open::before {
+        animation: menuSheen 0.9s cubic-bezier(0.16, 1, 0.3, 1) 0.08s both;
+      }
+      .mobile-menu a {
+        position: relative;
+        border-bottom-color: rgba(255, 255, 255, 0.08);
+        transform: translateY(-8px);
+        opacity: 0;
+        transition:
+          color 0.24s ease,
+          transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.32s ease,
+          padding-left 0.24s ease;
+      }
+      .mobile-menu.open a {
+        transform: translateY(0);
+        opacity: 1;
+      }
+      .mobile-menu.open a:nth-child(1) { transition-delay: 0.06s; }
+      .mobile-menu.open a:nth-child(2) { transition-delay: 0.09s; }
+      .mobile-menu.open a:nth-child(3) { transition-delay: 0.12s; }
+      .mobile-menu.open a:nth-child(4) { transition-delay: 0.15s; }
+      .mobile-menu.open a:nth-child(5) { transition-delay: 0.18s; }
+      .mobile-menu.open a:nth-child(6) { transition-delay: 0.21s; }
+      .mobile-menu.open a:nth-child(7) { transition-delay: 0.24s; }
+      .mobile-menu.open a:nth-child(8) { transition-delay: 0.27s; }
+      .mobile-menu.open a:nth-child(9) { transition-delay: 0.3s; }
+      .mobile-menu a:hover {
+        color: var(--gold);
+        padding-left: 8px;
+      }
+      @keyframes menuSheen {
+        from {
+          left: -42%;
+        }
+        to {
+          left: 118%;
+        }
+      }
+
+      section:not(.hero) {
+        position: relative;
+        overflow: hidden;
+      }
+      section:not(.hero)::before {
+        content: "";
+        position: absolute;
+        top: 0;
+        left: 8%;
+        right: 8%;
+        height: 1px;
+        background: linear-gradient(90deg, transparent, rgba(201, 168, 76, 0.32), transparent);
+        opacity: 0;
+        transform: scaleX(0.35);
+        transition:
+          opacity 0.36s ease,
+          transform 0.5s cubic-bezier(0.16, 1, 0.3, 1);
+        pointer-events: none;
+      }
+      section:not(.hero):hover::before {
+        opacity: 1;
+        transform: scaleX(1);
+      }
+      .section-title,
+      .section-tag {
+        transition:
+          color 0.28s ease,
+          text-shadow 0.28s ease,
+          transform 0.28s ease;
+      }
+      section:not(.hero):hover .section-tag {
+        color: var(--gold);
+      }
+      section:not(.hero):hover .section-title {
+        text-shadow: 0 12px 36px rgba(201, 168, 76, 0.12);
+      }
+      .feature-card,
+      .class-card,
+      .sport-activity,
+      .notice-item,
+      .contact-card,
+      .principal-card {
+        position: relative;
+        overflow: hidden;
+        transition:
+          transform 0.28s cubic-bezier(0.2, 0.8, 0.2, 1),
+          box-shadow 0.28s ease,
+          border-color 0.28s ease,
+          background 0.28s ease;
+      }
+      .feature-card::after,
+      .class-card::after,
+      .sport-activity::after,
+      .notice-item::after,
+      .contact-card::after,
+      .principal-card::after {
+        content: "";
+        position: absolute;
+        top: -45%;
+        bottom: -45%;
+        left: -38%;
+        width: 28%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.42), transparent);
+        transform: rotate(18deg);
+        opacity: 0;
+        pointer-events: none;
+        transition:
+          left 0.7s cubic-bezier(0.16, 1, 0.3, 1),
+          opacity 0.24s ease;
+      }
+      .feature-card:hover::after,
+      .class-card:hover::after,
+      .sport-activity:hover::after,
+      .notice-item:hover::after,
+      .contact-card:hover::after,
+      .principal-card:hover::after {
+        left: 118%;
+        opacity: 1;
+      }
+      .sport-activity:hover,
+      .notice-item:hover,
+      .contact-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 18px 42px rgba(13, 13, 48, 0.1);
+      }
+      .class-card:hover {
+        transform: translateY(-4px);
+        box-shadow: 0 16px 38px rgba(13, 13, 48, 0.08);
+      }
+
+      .campus-life-wrap {
+        max-width: 1200px;
+      }
+      .campus-life-grid {
+        display: grid !important;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)) !important;
+        grid-auto-rows: auto !important;
+        gap: 18px !important;
+        align-items: stretch;
+      }
+      .campus-card,
+      .campus-card.large,
+      .campus-card.wide,
+      .campus-card.tall,
+      .campus-card.small,
+      .campus-card.gallery-tile {
+        grid-column: auto !important;
+        grid-row: auto !important;
+        aspect-ratio: 4 / 3;
+        min-height: 0;
+        border-radius: 22px;
+        border: 1px solid rgba(255, 255, 255, 0.62);
+        background: rgba(255, 255, 255, 0.74);
+        box-shadow: 0 18px 48px rgba(13, 13, 48, 0.11);
+      }
+      .campus-card:nth-child(5n + 1) {
+        aspect-ratio: 16 / 11;
+      }
+      .campus-card:nth-child(5n + 3) {
+        aspect-ratio: 1 / 1;
+      }
+      .campus-card::before {
+        background:
+          linear-gradient(180deg, transparent 45%, rgba(7, 12, 30, 0.34)),
+          linear-gradient(135deg, rgba(255, 255, 255, 0.14), transparent 45%);
+      }
+      .campus-card::after {
+        width: 28%;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.26), transparent);
+      }
+      .campus-caption {
+        display: none;
+      }
+      .campus-caption span {
+        display: none;
+      }
+      .campus-caption em {
+        display: none;
+      }
+      @media (max-width: 560px) {
+        .campus-life-grid {
+          display: grid !important;
+          grid-template-columns: 1fr !important;
+          overflow: visible;
+          padding: 0;
+          margin: 0;
+          scroll-snap-type: none;
+        }
+        .campus-card,
+        .campus-card.large,
+        .campus-card.wide,
+        .campus-card.tall,
+        .campus-card.small,
+        .campus-card.gallery-tile,
+        .campus-card:nth-child(5n + 1),
+        .campus-card:nth-child(5n + 3) {
+          flex: none;
+          width: 100%;
+          height: auto;
+          aspect-ratio: 4 / 3;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .nav-hamburger,
+        .nav-hamburger::before,
+        .nav-hamburger span,
+        .mobile-menu,
+        .mobile-menu::before,
+        .mobile-menu a,
+        section:not(.hero)::before,
+        .feature-card,
+        .class-card,
+        .sport-activity,
+        .notice-item,
+        .contact-card,
+        .principal-card,
+        .feature-card::after,
+        .class-card::after,
+        .sport-activity::after,
+        .notice-item::after,
+        .contact-card::after,
+        .principal-card::after {
+          animation: none !important;
+          transition: none !important;
+        }
+      }
+
       /* Hero reset: restore the original clean Pinnacle landing section. */
       .hero {
         min-height: auto !important;
@@ -2071,6 +2384,7 @@
         <li><a href="#about">About</a></li>
         <li><a href="#academics">Academics</a></li>
         <li><a href="#sports">Sports</a></li>
+        <li><a href="#gallery">Gallery</a></li>
         <li><a href="#principal">Leadership</a></li>
         <li><a href="/erp">School Portal</a></li>
         <li><a href="#contact">Contact</a></li>
@@ -2092,6 +2406,7 @@
       <a href="#about" onclick="toggleMenu()">About</a>
       <a href="#academics" onclick="toggleMenu()">Academics</a>
       <a href="#sports" onclick="toggleMenu()">Sports & Activities</a>
+      <a href="#gallery" onclick="toggleMenu()">Gallery</a>
       <a href="#principal" onclick="toggleMenu()">Principal's Message</a>
       <a href="/erp" onclick="toggleMenu()">School Portal</a>
       <a href="#admissions" onclick="toggleMenu()">Admissions</a>
@@ -2324,46 +2639,6 @@
             </div>
           </div>
 
-          <!-- Sports Images -->
-          <div class="sports-Images">
-            <div class="sports-img-card">
-              <img
-                src="Images/sports1.jpg"
-                alt="Students participating in athletics on sports day"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="sports-img-overlay">School Life</div>
-            </div>
-            <div class="sports-img-card">
-              <img
-                src="Images/sports2.jpg"
-                alt="Students playing football"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="sports-img-overlay">Campus</div>
-            </div>
-            <div class="sports-img-card">
-              <img
-                src="Images/sports3.jpg"
-                alt="Students playing badminton"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="sports-img-overlay">Sports Activities</div>
-            </div>
-            <div class="sports-img-card">
-              <img
-                src="Images/gallery2.jpg"
-                alt="Students taking part in arts and creative activities"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="sports-img-overlay">Moments at Pinnacle</div>
-            </div>
-          </div>
-
           <div class="sports-activities">
             <div class="sport-activity">
               <div class="sport-activity-icon">🏏</div>
@@ -2471,11 +2746,11 @@
       <!-- GALLERY -->
       <section id="gallery" class="section-alt" aria-labelledby="gallery-title">
         <div class="section-center">
-          <span class="section-tag">Campus Life</span>
-          <h2 class="section-title" id="gallery-title">Moments That Shape Childhood</h2>
+          <span class="section-tag">School Gallery</span>
+          <h2 class="section-title" id="gallery-title">Life at Pinnacle in Pictures</h2>
           <p class="section-desc">
-            Assembly, prayer, play, creativity, and classroom curiosity come
-            together to create a warm school day at Pinnacle.
+            One simple gallery for assemblies, celebrations, sports, arts,
+            classroom learning, and everyday school memories.
           </p>
         </div>
         <div class="campus-life-wrap">
@@ -3053,6 +3328,11 @@
               >
             </li>
             <li>
+              <a href="#gallery" style="color: #7070a0; text-decoration: none"
+                >Gallery</a
+              >
+            </li>
+            <li>
               <a
                 href="#admissions"
                 style="color: #7070a0; text-decoration: none"
@@ -3316,7 +3596,9 @@
         var menu = document.getElementById("mobileMenu");
         var button = document.querySelector(".nav-hamburger");
         var isOpen = menu.classList.toggle("open");
+        button.classList.toggle("active", isOpen);
         button.setAttribute("aria-expanded", isOpen ? "true" : "false");
+        button.setAttribute("aria-label", isOpen ? "Close menu" : "Open menu");
       }
 
       function setFieldError(fieldId, inputId, isValid) {
