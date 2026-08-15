@@ -26,8 +26,8 @@
     <meta property="og:type" content="website" />
     <meta property="og:image" content="Images/schoollogo.jpeg" />
     <meta name="twitter:card" content="summary" />
-    <link rel="icon" type="image/png" href="Images/schoollogo-modified.png" />
-    <link rel="apple-touch-icon" href="Images/schoollogo-modified.png" />
+    <link rel="icon" type="image/png" href="Images/schoollogo.jpeg" />
+    <link rel="apple-touch-icon" href="Images/schoollogo.jpeg" />
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link
@@ -1386,6 +1386,667 @@
       .hero .hero-stats {
         animation-delay: 0.5s;
       }
+
+      /* Cinematic video hero enhancement */
+      .hero {
+        min-height: 100vh;
+        min-height: 100svh;
+        background: var(--navy-dark) url("Images/school1.jpg") center/cover no-repeat;
+        padding: clamp(7rem, 12vh, 9rem) 5% clamp(3.5rem, 8vh, 5rem);
+        display: grid;
+        place-items: center;
+        isolation: isolate;
+      }
+      .hero::before {
+        display: none;
+      }
+      .hero-video-stage,
+      .hero-video,
+      .hero-video-fallback,
+      .hero-overlay,
+      .hero-grain {
+        position: absolute;
+        inset: 0;
+      }
+      .hero-video-stage {
+        z-index: 0;
+        background: var(--navy-dark);
+      }
+      .hero-video,
+      .hero-video-fallback {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+      }
+      .hero-video {
+        opacity: 0;
+        transform: scale(1.035);
+        transition: opacity 1.4s ease, transform 10s ease;
+        will-change: opacity, transform;
+      }
+      .hero-video.active {
+        opacity: 1;
+        transform: scale(1.085);
+      }
+      .hero-video-fallback {
+        z-index: 0;
+        filter: saturate(0.92) contrast(1.04);
+      }
+      .hero-overlay {
+        z-index: 1;
+        background:
+          radial-gradient(circle at 50% 42%, rgba(8, 18, 36, 0.1), rgba(5, 9, 22, 0.42) 64%),
+          linear-gradient(180deg, rgba(8, 12, 28, 0.44), rgba(5, 8, 18, 0.28) 42%, rgba(5, 8, 18, 0.58));
+      }
+      .hero-grain {
+        z-index: 2;
+        opacity: 0.14;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 42px,
+          rgba(201, 168, 76, 0.045) 42px,
+          rgba(201, 168, 76, 0.045) 84px
+        );
+        mix-blend-mode: screen;
+      }
+      .hero-content {
+        width: min(980px, 100%);
+        margin: 0 auto;
+        position: relative;
+        z-index: 3;
+        transform: translateY(0);
+        transition: transform 0.18s ease-out;
+      }
+      .hero-glass {
+        position: relative;
+        overflow: hidden;
+        padding: clamp(1.75rem, 5vw, 3.35rem);
+        border-radius: clamp(24px, 4vw, 38px);
+        border: 1px solid rgba(255, 255, 255, 0.28);
+        background:
+          linear-gradient(135deg, rgba(255, 255, 255, 0.18), rgba(255, 255, 255, 0.06)),
+          rgba(12, 18, 42, 0.32);
+        box-shadow:
+          0 28px 90px rgba(0, 0, 0, 0.36),
+          inset 0 1px 0 rgba(255, 255, 255, 0.24);
+        backdrop-filter: blur(22px) saturate(1.22);
+        -webkit-backdrop-filter: blur(22px) saturate(1.22);
+      }
+      .hero-glass::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        pointer-events: none;
+        background:
+          linear-gradient(120deg, transparent 0 20%, rgba(255, 255, 255, 0.22) 38%, transparent 56%),
+          radial-gradient(circle at 18% 0%, rgba(201, 168, 76, 0.22), transparent 36%);
+        opacity: 0.55;
+        transform: translateX(-28%);
+      }
+      .hero-badge,
+      .hero h1,
+      .hero .hero-sub,
+      .hero .hero-address,
+      .hero .hero-btns,
+      .hero .hero-stats {
+        position: relative;
+        z-index: 1;
+        animation: heroReveal 0.85s cubic-bezier(0.2, 0.8, 0.2, 1) both;
+      }
+      .hero-badge {
+        background: rgba(201, 168, 76, 0.22);
+        border: 1px solid rgba(255, 232, 169, 0.38);
+        color: #f5d986;
+        padding: 7px 16px;
+        font-weight: 600;
+        letter-spacing: 0.02em;
+        animation-delay: 0.12s;
+      }
+      .hero h1 {
+        font-size: clamp(34px, 6vw, 74px);
+        line-height: 1.04;
+        margin-bottom: 0.75rem;
+        text-shadow: 0 10px 38px rgba(0, 0, 0, 0.34);
+        animation-delay: 0.26s;
+      }
+      .hero-em {
+        font-size: clamp(18px, 2.4vw, 28px);
+      }
+      .hero-sub {
+        color: rgba(245, 248, 255, 0.84);
+        font-size: clamp(15px, 2vw, 19px);
+        max-width: 680px;
+        animation-delay: 0.4s;
+      }
+      .hero-address {
+        color: rgba(231, 235, 248, 0.72);
+        font-size: clamp(12px, 1.7vw, 14px);
+        margin: 0.85rem auto 2rem;
+        max-width: 760px;
+        animation-delay: 0.5s;
+      }
+      .hero-btns {
+        margin-bottom: 2.4rem;
+        animation-delay: 0.62s;
+      }
+      .hero-stats {
+        padding-top: 2rem;
+        border-top: 1px solid rgba(255, 255, 255, 0.14);
+        animation-delay: 0.78s;
+      }
+      .stat-item {
+        min-width: 92px;
+      }
+      .hero .stat-num {
+        color: #f4d67f;
+      }
+      .hero .stat-label {
+        color: rgba(235, 238, 249, 0.68);
+      }
+      .btn-gold {
+        box-shadow: 0 14px 34px rgba(201, 168, 76, 0.24);
+        transition: transform 0.22s ease, box-shadow 0.22s ease, background 0.22s ease;
+      }
+      .btn-gold:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 18px 42px rgba(201, 168, 76, 0.32);
+      }
+      .btn-outline-gold {
+        background: rgba(255, 255, 255, 0.07);
+        color: #f1d27b;
+        border-color: rgba(241, 210, 123, 0.82);
+        transition: transform 0.22s ease, background 0.22s ease, border-color 0.22s ease;
+      }
+      .btn-outline-gold:hover {
+        background: rgba(255, 255, 255, 0.13);
+        border-color: #fff0b8;
+        transform: translateY(-2px);
+      }
+      .btn-video {
+        display: none;
+        font-family: inherit;
+      }
+      .hero.has-video .btn-video {
+        display: inline-block;
+      }
+      .campus-video-modal {
+        position: fixed;
+        inset: 0;
+        z-index: 2000;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 5%;
+        background: rgba(4, 7, 18, 0.78);
+        backdrop-filter: blur(12px);
+        -webkit-backdrop-filter: blur(12px);
+      }
+      .campus-video-modal.open {
+        display: flex;
+      }
+      .campus-video-dialog {
+        width: min(980px, 100%);
+        background: rgba(13, 13, 48, 0.86);
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        border-radius: 24px;
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.42);
+        padding: 14px;
+        position: relative;
+      }
+      .campus-video-dialog video {
+        width: 100%;
+        max-height: 78vh;
+        border-radius: 16px;
+        display: block;
+        background: #000;
+      }
+      .campus-video-close {
+        position: absolute;
+        top: -16px;
+        right: -16px;
+        width: 42px;
+        height: 42px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.9);
+        color: var(--navy);
+        font-size: 20px;
+        cursor: pointer;
+      }
+      @keyframes heroReveal {
+        from {
+          opacity: 0;
+          transform: translateY(22px);
+          filter: blur(4px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+          filter: blur(0);
+        }
+      }
+      @media (max-width: 768px) {
+        .hero {
+          min-height: auto;
+          padding: 5.4rem 5% 2.25rem;
+        }
+        .hero-glass {
+          border-radius: 24px;
+          padding: 1.45rem;
+          background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.08)),
+            rgba(10, 16, 38, 0.54);
+        }
+        .hero-btns a,
+        .hero-btns button {
+          width: min(100%, 320px);
+        }
+        .hero-stats {
+          display: grid;
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+          gap: 1rem;
+        }
+        .stat-item:last-child {
+          grid-column: span 2;
+        }
+      }
+      @media (max-width: 480px) {
+        .hero {
+          min-height: auto;
+          padding-top: 5.1rem;
+        }
+        .hero h1 {
+          font-size: clamp(31px, 11vw, 46px);
+        }
+        .hero-address {
+          margin-bottom: 1.5rem;
+        }
+        .campus-video-close {
+          top: -12px;
+          right: -8px;
+        }
+      }
+      @media (prefers-reduced-motion: reduce) {
+        .hero-video,
+        .hero-video.active,
+        .hero-content,
+        .hero-badge,
+        .hero h1,
+        .hero .hero-sub,
+        .hero .hero-address,
+        .hero .hero-btns,
+        .hero .hero-stats {
+          animation: none !important;
+          transition: none !important;
+          transform: none !important;
+        }
+      }
+
+      /* Premium mobile hero and campus life section */
+      @media (max-width: 768px) {
+        .hero.mobile-poster {
+          min-height: auto;
+          padding: 5.25rem 5% 2.25rem;
+          place-items: center;
+          background-position: center top;
+        }
+        .hero.mobile-poster .hero-video-stage::after {
+          content: "";
+          position: absolute;
+          inset: 0;
+          background:
+            linear-gradient(180deg, rgba(5, 8, 18, 0.18), rgba(5, 8, 18, 0.28) 42%, rgba(5, 8, 18, 0.72)),
+            radial-gradient(circle at 50% 18%, transparent 0 34%, rgba(5, 8, 18, 0.46) 82%);
+        }
+        .hero.mobile-poster .hero-video-fallback {
+          object-position: center top;
+          transform: scale(1.01);
+        }
+        .hero.mobile-poster .hero-overlay {
+          background: linear-gradient(180deg, rgba(5, 8, 18, 0.1), rgba(5, 8, 18, 0.62));
+        }
+        .hero.mobile-poster .hero-grain {
+          opacity: 0.08;
+        }
+        .hero.mobile-poster .hero-content {
+          transform: none !important;
+        }
+        .hero.mobile-poster .hero-glass {
+          width: 100%;
+          margin-top: 0;
+          border-radius: 22px;
+          padding: 1.2rem;
+          background:
+            linear-gradient(135deg, rgba(255, 255, 255, 0.2), rgba(255, 255, 255, 0.07)),
+            rgba(11, 17, 38, 0.58);
+          box-shadow: 0 18px 52px rgba(0, 0, 0, 0.32), inset 0 1px 0 rgba(255, 255, 255, 0.22);
+          backdrop-filter: blur(16px) saturate(1.16);
+          -webkit-backdrop-filter: blur(16px) saturate(1.16);
+        }
+        .hero.mobile-poster .hero-badge {
+          margin-bottom: 1rem;
+          font-size: 11px;
+          padding: 6px 12px;
+        }
+        .hero.mobile-poster .hero-sub {
+          margin-top: 0.75rem;
+          line-height: 1.5;
+        }
+        .hero.mobile-poster .hero-address {
+          margin: 0.75rem auto 1.25rem;
+        }
+        .hero.mobile-poster .hero-btns {
+          gap: 10px;
+          margin-bottom: 1.35rem;
+        }
+        .hero.mobile-poster .hero-stats {
+          padding-top: 1.2rem;
+          gap: 0.75rem;
+        }
+        .hero.mobile-poster .stat-item {
+          min-width: 0;
+          padding: 0.72rem 0.55rem;
+          border-radius: 16px;
+          background: rgba(255, 255, 255, 0.07);
+          border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+      }
+
+      .campus-life-wrap {
+        max-width: 1180px;
+        margin: 2.8rem auto 0;
+      }
+      .campus-life-grid {
+        display: grid;
+        grid-template-columns: repeat(6, 1fr);
+        grid-auto-rows: 150px;
+        gap: 16px;
+      }
+      .campus-card {
+        position: relative;
+        overflow: hidden;
+        border: none;
+        border-radius: 24px;
+        padding: 0;
+        background: var(--navy-mid);
+        cursor: pointer;
+        box-shadow: 0 18px 46px rgba(13, 13, 48, 0.12);
+        opacity: 0;
+        transform: translateY(24px);
+        transition:
+          opacity 0.7s ease,
+          transform 0.7s ease,
+          box-shadow 0.3s ease;
+      }
+      .campus-card.revealed {
+        opacity: 1;
+        transform: translateY(0);
+      }
+      .campus-card:hover {
+        transform: translateY(-5px);
+        box-shadow: 0 24px 62px rgba(13, 13, 48, 0.18);
+      }
+      .campus-card.large {
+        grid-column: span 3;
+        grid-row: span 2;
+      }
+      .campus-card.wide {
+        grid-column: span 3;
+      }
+      .campus-card.tall {
+        grid-column: span 2;
+        grid-row: span 2;
+      }
+      .campus-card.small {
+        grid-column: span 2;
+      }
+      .campus-card img {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        display: block;
+        transform: scale(1.02);
+        transition: transform 0.7s ease, filter 0.7s ease;
+      }
+      .campus-card:hover img {
+        transform: scale(1.08);
+        filter: saturate(1.08) contrast(1.03);
+      }
+      .campus-card::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        z-index: 1;
+        background:
+          linear-gradient(180deg, transparent 28%, rgba(7, 12, 30, 0.76)),
+          linear-gradient(120deg, rgba(255, 255, 255, 0.18), transparent 38%);
+        opacity: 0.9;
+      }
+      .campus-card::after {
+        content: "";
+        position: absolute;
+        top: -30%;
+        bottom: -30%;
+        left: -45%;
+        width: 34%;
+        z-index: 2;
+        background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.22), transparent);
+        transform: rotate(18deg);
+        transition: left 0.75s ease;
+      }
+      .campus-card:hover::after {
+        left: 115%;
+      }
+      .campus-caption {
+        position: absolute;
+        left: 14px;
+        right: 14px;
+        bottom: 14px;
+        z-index: 3;
+        display: flex;
+        align-items: end;
+        justify-content: space-between;
+        gap: 12px;
+        padding: 12px 14px;
+        border-radius: 18px;
+        border: 1px solid rgba(255, 255, 255, 0.22);
+        background: rgba(255, 255, 255, 0.12);
+        backdrop-filter: blur(14px) saturate(1.16);
+        -webkit-backdrop-filter: blur(14px) saturate(1.16);
+        color: #fff;
+        text-align: left;
+      }
+      .campus-caption strong {
+        display: block;
+        font-family: "Playfair Display", serif;
+        font-size: clamp(17px, 2vw, 23px);
+        line-height: 1.1;
+      }
+      .campus-caption span {
+        display: block;
+        color: rgba(255, 255, 255, 0.72);
+        font-size: 12px;
+        margin-top: 4px;
+      }
+      .campus-caption em {
+        flex: 0 0 auto;
+        color: var(--gold);
+        font-style: normal;
+        font-size: 18px;
+      }
+      .campus-lightbox {
+        position: fixed;
+        inset: 0;
+        z-index: 2100;
+        display: none;
+        align-items: center;
+        justify-content: center;
+        padding: 5%;
+        background: rgba(4, 7, 18, 0.82);
+        backdrop-filter: blur(14px);
+        -webkit-backdrop-filter: blur(14px);
+      }
+      .campus-lightbox.open {
+        display: flex;
+      }
+      .campus-lightbox-card {
+        width: min(1040px, 100%);
+        position: relative;
+      }
+      .campus-lightbox-card img {
+        width: 100%;
+        max-height: 78vh;
+        object-fit: contain;
+        display: block;
+        border-radius: 24px;
+        box-shadow: 0 28px 90px rgba(0, 0, 0, 0.44);
+        background: #050814;
+      }
+      .campus-lightbox-caption {
+        color: #fff;
+        margin-top: 14px;
+        font-family: "Playfair Display", serif;
+        font-size: 22px;
+        text-align: center;
+      }
+      .campus-lightbox-close {
+        position: absolute;
+        top: -18px;
+        right: -18px;
+        width: 44px;
+        height: 44px;
+        border-radius: 50%;
+        border: 1px solid rgba(255, 255, 255, 0.35);
+        background: rgba(255, 255, 255, 0.92);
+        color: var(--navy);
+        font-size: 22px;
+        cursor: pointer;
+      }
+      @media (max-width: 900px) {
+        .campus-life-grid {
+          grid-template-columns: repeat(4, 1fr);
+          grid-auto-rows: 140px;
+        }
+        .campus-card.large,
+        .campus-card.wide {
+          grid-column: span 4;
+        }
+        .campus-card.tall,
+        .campus-card.small {
+          grid-column: span 2;
+        }
+      }
+      @media (max-width: 560px) {
+        .campus-life-wrap {
+          margin-top: 2rem;
+        }
+        .campus-life-grid {
+          display: flex;
+          overflow-x: auto;
+          gap: 14px;
+          padding: 0 5% 12px;
+          margin: 0 -5%;
+          scroll-snap-type: x mandatory;
+          -webkit-overflow-scrolling: touch;
+        }
+        .campus-card,
+        .campus-card.large,
+        .campus-card.wide,
+        .campus-card.tall,
+        .campus-card.small {
+          flex: 0 0 82%;
+          height: 330px;
+          scroll-snap-align: center;
+          border-radius: 22px;
+        }
+        .campus-card:nth-child(even) {
+          flex-basis: 74%;
+        }
+        .campus-caption {
+          left: 12px;
+          right: 12px;
+          bottom: 12px;
+          padding: 11px 12px;
+        }
+      }
+
+      /* Hero reset: restore the original clean Pinnacle landing section. */
+      .hero {
+        min-height: auto !important;
+        display: block !important;
+        padding: 5rem 5% 4rem !important;
+        text-align: center;
+        background: var(--navy-dark) !important;
+        isolation: auto;
+      }
+      .hero::before {
+        content: "";
+        display: block !important;
+        position: absolute;
+        inset: 0;
+        background: repeating-linear-gradient(
+          45deg,
+          transparent,
+          transparent 35px,
+          rgba(201, 168, 76, 0.035) 35px,
+          rgba(201, 168, 76, 0.035) 70px
+        );
+        pointer-events: none;
+      }
+      .hero-video-stage,
+      .hero-overlay,
+      .hero-grain,
+      .campus-video-modal,
+      .btn-video {
+        display: none !important;
+      }
+      .hero-content {
+        width: auto;
+        max-width: none;
+        margin: 0 auto;
+        position: relative;
+        z-index: 1;
+        transform: none !important;
+        transition: none;
+      }
+      .hero-glass {
+        padding: 0;
+        border: 0;
+        border-radius: 0;
+        background: transparent;
+        box-shadow: none;
+        backdrop-filter: none;
+        -webkit-backdrop-filter: none;
+        overflow: visible;
+      }
+      .hero-glass::before {
+        display: none;
+      }
+      .hero-badge {
+        background: rgba(201, 168, 76, 0.15);
+        border: 1px solid rgba(201, 168, 76, 0.35);
+        color: var(--gold);
+      }
+      .hero h1 {
+        font-size: clamp(2.5rem, 6vw, 4.8rem);
+        text-shadow: 0 8px 30px rgba(0, 0, 0, 0.28);
+      }
+      .hero-sub {
+        color: rgba(255, 255, 255, 0.9);
+      }
+      .hero-address {
+        color: rgba(255, 255, 255, 0.72);
+      }
+      .hero-stats {
+        border-top: 1px solid rgba(255, 255, 255, 0.16);
+        padding-top: 2rem;
+      }
+      @media (max-width: 768px) {
+        .hero {
+          padding: 4.5rem 5% 3rem !important;
+        }
+      }
     </style>
   </head>
   <body>
@@ -1440,43 +2101,47 @@
     <main id="main-content">
       <!-- HERO -->
       <section id="home" class="hero">
-        <div class="hero-badge">
-          <img class="inline-logo" src="Images/schoollogo.jpeg" alt="" /> An
-          Initiative by Pinnacle Educational Society
-        </div>
-        <h1>Pinnacle Upper Primary School <span class="hero-em">E/M</span></h1>
-        <p class="hero-sub">
-          Innovative Learning For a Brighter Future · Nursery to Class VII ·
-          CBSE Syllabus · English Medium
-        </p>
-        <p class="hero-address">
-          📍 H.No: 10-221/D, Dumala Road, Yellareddypet, Pin: 505303, Rajanna
-          Sircilla Dist, Telangana State
-        </p>
-        <div class="hero-btns">
-          <a href="#admissions" class="btn-gold">Apply for Admission 2026–27</a>
-          <a href="#about" class="btn-outline-gold">Learn More</a>
-        </div>
-        <div class="hero-stats">
-          <div class="stat-item">
-            <div class="stat-num">100+</div>
-            <div class="stat-label">Students</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">10+</div>
-            <div class="stat-label">Teachers</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">Nursery–VII</div>
-            <div class="stat-label">Classes Offered</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">CBSE</div>
-            <div class="stat-label">Curriculum</div>
-          </div>
-          <div class="stat-item">
-            <div class="stat-num">2026–27</div>
-            <div class="stat-label">Admissions Open</div>
+        <div class="hero-content">
+          <div class="hero-glass">
+            <div class="hero-badge">
+              <img class="inline-logo" src="Images/schoollogo.jpeg" alt="" /> An
+              Initiative by Pinnacle Educational Society
+            </div>
+            <h1>Pinnacle Upper Primary School <span class="hero-em">E/M</span></h1>
+            <p class="hero-sub">
+              Innovative Learning For a Brighter Future · Nursery to Class VII ·
+              CBSE Syllabus · English Medium
+            </p>
+            <p class="hero-address">
+              📍 H.No: 10-221/D, Dumala Road, Yellareddypet, Pin: 505303, Rajanna
+              Sircilla Dist, Telangana State
+            </p>
+            <div class="hero-btns">
+              <a href="#admissions" class="btn-gold">Apply for Admission 2026–27</a>
+              <a href="#about" class="btn-outline-gold">Learn More</a>
+            </div>
+            <div class="hero-stats">
+              <div class="stat-item">
+                <div class="stat-num">100+</div>
+                <div class="stat-label">Students</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">10+</div>
+                <div class="stat-label">Teachers</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">Nursery–VII</div>
+                <div class="stat-label">Classes Offered</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">CBSE</div>
+                <div class="stat-label">Curriculum</div>
+              </div>
+              <div class="stat-item">
+                <div class="stat-num">2026–27</div>
+                <div class="stat-label">Admissions Open</div>
+              </div>
+            </div>
           </div>
         </div>
       </section>
@@ -1668,7 +2333,7 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Annual Sports Day</div>
+              <div class="sports-img-overlay">School Life</div>
             </div>
             <div class="sports-img-card">
               <img
@@ -1677,7 +2342,7 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Inter-School Football</div>
+              <div class="sports-img-overlay">Campus</div>
             </div>
             <div class="sports-img-card">
               <img
@@ -1686,16 +2351,16 @@
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Badminton & Indoor Sports</div>
+              <div class="sports-img-overlay">Sports Activities</div>
             </div>
             <div class="sports-img-card">
               <img
-                src="Images/sports4.jpg"
+                src="Images/gallery2.jpg"
                 alt="Students taking part in arts and creative activities"
                 loading="lazy"
                 decoding="async"
               />
-              <div class="sports-img-overlay">Art & Craft Activities</div>
+              <div class="sports-img-overlay">Moments at Pinnacle</div>
             </div>
           </div>
 
@@ -1806,72 +2471,33 @@
       <!-- GALLERY -->
       <section id="gallery" class="section-alt" aria-labelledby="gallery-title">
         <div class="section-center">
-          <span class="section-tag">Gallery</span>
-          <h2 class="section-title" id="gallery-title">Life at Pinnacle</h2>
+          <span class="section-tag">Campus Life</span>
+          <h2 class="section-title" id="gallery-title">Moments That Shape Childhood</h2>
           <p class="section-desc">
-            A glimpse of the vibrant, joyful, and enriching school life at
-            Pinnacle.
+            Assembly, prayer, play, creativity, and classroom curiosity come
+            together to create a warm school day at Pinnacle.
           </p>
         </div>
-        <div style="max-width: 900px; margin: 2.5rem auto 0">
-          <div class="gallery-grid">
-            <div class="gallery-item">
-              <img
-                src="Images/school.jpg"
-                alt="Main gallery image of school activities"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Life at Pinnacle</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery1.jpg"
-                alt="Happy students learning"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Students & Learning</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery2.jpg"
-                alt="Annual sports day event"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Annual Sports Day</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery3.jpg"
-                alt="Students doing arts and crafts"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Creative Activities</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery4.jpg"
-                alt="Students learning robotics"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Robotics Program</div>
-            </div>
-            <div class="gallery-item">
-              <img
-                src="Images/gallery5.jpg"
-                alt="Students performing in cultural events"
-                loading="lazy"
-                decoding="async"
-              />
-              <div class="gallery-label">Cultural Fest</div>
-            </div>
-          </div>
+        <div class="campus-life-wrap">
+          <div class="campus-life-grid" id="campusLifeGrid" aria-live="polite"></div>
         </div>
       </section>
+
+      <div
+        class="campus-lightbox"
+        id="campusLightbox"
+        role="dialog"
+        aria-modal="true"
+        aria-label="Campus life image preview"
+      >
+        <div class="campus-lightbox-card">
+          <button class="campus-lightbox-close" id="campusLightboxClose" type="button" aria-label="Close image preview">
+            &times;
+          </button>
+          <img id="campusLightboxImage" src="" alt="" />
+          <div class="campus-lightbox-caption" id="campusLightboxCaption"></div>
+        </div>
+      </div>
 
       <!-- NOTICE BOARD -->
       <section id="notices" aria-labelledby="notices-title">
@@ -2464,7 +3090,227 @@
       </div>
     </footer>
 
+    <script src="media-config.js"></script>
     <script>
+      var siteMedia = window.PINNACLE_MEDIA_CONFIG || {};
+      var heroVideoFiles = [];
+      var campusLifeItems = Array.isArray(siteMedia.gallery) ? siteMedia.gallery : [];
+
+      function initHeroVideos() {
+        var hero = document.getElementById("home");
+        var stage = document.getElementById("heroVideoStage");
+        var watchButton = document.getElementById("watchCampusVideo");
+        var modal = document.getElementById("campusVideoModal");
+        var closeButton = document.getElementById("closeCampusVideo");
+        var player = document.getElementById("campusVideoPlayer");
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+        var mobileHero = window.matchMedia("(max-width: 768px)").matches;
+
+        if (!hero || !stage || !heroVideoFiles.length) return;
+        if (mobileHero) {
+          hero.classList.add("mobile-poster");
+          return;
+        }
+
+        var videos = [];
+        var activeIndex = 0;
+        var rotationTimer = null;
+
+        function createHeroVideo(src, index) {
+          var video = document.createElement("video");
+          video.className = "hero-video";
+          video.muted = true;
+          video.loop = true;
+          video.autoplay = true;
+          video.playsInline = true;
+          video.setAttribute("muted", "");
+          video.setAttribute("playsinline", "");
+          video.preload = index === 0 ? "auto" : "metadata";
+          video.src = src;
+          video.addEventListener("canplay", function () {
+            if (videos.indexOf(video) === -1) {
+              videos.push(video);
+              hero.classList.add("has-video");
+              if (videos.length === 1) {
+                activateVideo(0);
+                setupCampusModal(src);
+              }
+              if (videos.length === 2 && !rotationTimer && !reduceMotion) {
+                rotationTimer = window.setInterval(showNextVideo, 10000);
+              }
+            }
+          });
+          video.addEventListener("error", function () {
+            video.remove();
+          });
+          stage.appendChild(video);
+          video.load();
+        }
+
+        function activateVideo(index) {
+          if (!videos.length) return;
+          activeIndex = index % videos.length;
+          videos.forEach(function (video, videoIndex) {
+            var isActive = videoIndex === activeIndex;
+            video.classList.toggle("active", isActive);
+            if (isActive) {
+              video.play().catch(function () {});
+              setupCampusModal(video.currentSrc || video.src);
+            } else {
+              video.pause();
+            }
+          });
+        }
+
+        function showNextVideo() {
+          activateVideo(activeIndex + 1);
+        }
+
+        function setupCampusModal(src) {
+          if (!watchButton || !modal || !closeButton || !player || !src) return;
+          watchButton.onclick = function () {
+            player.src = src;
+            modal.classList.add("open");
+            player.play().catch(function () {});
+          };
+          closeButton.onclick = closeCampusModal;
+          modal.onclick = function (event) {
+            if (event.target === modal) closeCampusModal();
+          };
+          document.addEventListener("keydown", function (event) {
+            if (event.key === "Escape" && modal.classList.contains("open")) {
+              closeCampusModal();
+            }
+          });
+        }
+
+        function closeCampusModal() {
+          modal.classList.remove("open");
+          player.pause();
+          player.removeAttribute("src");
+          player.load();
+        }
+
+        heroVideoFiles.forEach(createHeroVideo);
+
+        if (!reduceMotion) {
+          var ticking = false;
+          window.addEventListener(
+            "scroll",
+            function () {
+              if (ticking) return;
+              ticking = true;
+              window.requestAnimationFrame(function () {
+                var content = hero.querySelector(".hero-content");
+                if (content) {
+                  var offset = Math.min(window.scrollY * 0.04, 18);
+                  content.style.transform = "translateY(" + offset + "px)";
+                }
+                ticking = false;
+              });
+            },
+            { passive: true },
+          );
+        }
+      }
+
+      initHeroVideos();
+
+      function initCampusLifeGallery() {
+        var grid = document.getElementById("campusLifeGrid");
+        var lightbox = document.getElementById("campusLightbox");
+        var lightboxImage = document.getElementById("campusLightboxImage");
+        var lightboxCaption = document.getElementById("campusLightboxCaption");
+        var closeButton = document.getElementById("campusLightboxClose");
+        var reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+        if (!grid) return;
+
+        grid.innerHTML = campusLifeItems
+          .map(function (item, index) {
+            return (
+              '<button class="campus-card ' +
+              escapeHtml(item.size || "small") +
+              '" type="button" data-campus-index="' +
+              index +
+              '">' +
+              '<img src="' +
+              escapeHtml(item.image) +
+              '" alt="' +
+              escapeHtml(item.title + " at Pinnacle Upper Primary School") +
+              '" loading="lazy" decoding="async">' +
+              '<span class="campus-caption"><span><strong>' +
+              escapeHtml(item.title) +
+              "</strong><span>" +
+              escapeHtml(item.caption) +
+              '</span></span><em>+</em></span></button>'
+            );
+          })
+          .join("");
+
+        function revealCards() {
+          var cards = Array.prototype.slice.call(document.querySelectorAll(".campus-card"));
+          if (reduceMotion || !("IntersectionObserver" in window)) {
+            cards.forEach(function (card) {
+              card.classList.add("revealed");
+            });
+            return;
+          }
+          var observer = new IntersectionObserver(
+            function (entries) {
+              entries.forEach(function (entry) {
+                if (entry.isIntersecting) {
+                  entry.target.classList.add("revealed");
+                  observer.unobserve(entry.target);
+                }
+              });
+            },
+            { threshold: 0.18 },
+          );
+          cards.forEach(function (card, index) {
+            card.style.transitionDelay = Math.min(index * 70, 420) + "ms";
+            observer.observe(card);
+          });
+        }
+
+        function openCampusImage(index) {
+          var item = campusLifeItems[index];
+          if (!item || !lightbox || !lightboxImage || !lightboxCaption) return;
+          lightboxImage.src = item.image;
+          lightboxImage.alt = item.title + " at Pinnacle Upper Primary School";
+          lightboxCaption.textContent = item.title;
+          lightbox.classList.add("open");
+        }
+
+        function closeCampusImage() {
+          if (!lightbox || !lightboxImage) return;
+          lightbox.classList.remove("open");
+          lightboxImage.removeAttribute("src");
+        }
+
+        grid.addEventListener("click", function (event) {
+          var card = event.target.closest("[data-campus-index]");
+          if (!card) return;
+          openCampusImage(Number(card.getAttribute("data-campus-index")));
+        });
+
+        if (closeButton) closeButton.addEventListener("click", closeCampusImage);
+        if (lightbox) {
+          lightbox.addEventListener("click", function (event) {
+            if (event.target === lightbox) closeCampusImage();
+          });
+        }
+        document.addEventListener("keydown", function (event) {
+          if (event.key === "Escape" && lightbox && lightbox.classList.contains("open")) {
+            closeCampusImage();
+          }
+        });
+
+        revealCards();
+      }
+
+      initCampusLifeGallery();
+
       // Mobile menu
       function toggleMenu() {
         var menu = document.getElementById("mobileMenu");
