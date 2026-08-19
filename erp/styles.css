@@ -756,7 +756,7 @@ button {
 .login-screen {
   background:
     linear-gradient(90deg, rgba(13, 13, 48, 0.88), rgba(26, 26, 78, 0.7)),
-    url("https://pinnacleups.com/Images/school.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/school.jpg") center/cover no-repeat;
 }
 
 .login-panel {
@@ -781,7 +781,7 @@ button {
   justify-content: space-between;
   background:
     linear-gradient(180deg, rgba(13, 13, 48, 0.18), rgba(13, 13, 48, 0.82)),
-    url("https://pinnacleups.com/Images/gallery1.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/gallery1.jpg") center/cover no-repeat;
   color: var(--white);
 }
 
@@ -1148,7 +1148,7 @@ button {
   border-radius: var(--radius-lg);
   background:
     linear-gradient(135deg, rgba(26, 26, 78, 0.96), rgba(42, 42, 110, 0.88)),
-    url("https://pinnacleups.com/Images/gallery4.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/gallery4.jpg") center/cover no-repeat;
   color: var(--white);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--glass-shadow);
@@ -1376,7 +1376,7 @@ button {
   border-radius: var(--radius);
   background:
     linear-gradient(135deg, rgba(26, 26, 78, 0.96), rgba(42, 42, 110, 0.86)),
-    url("https://pinnacleups.com/Images/gallery1.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/gallery1.jpg") center/cover no-repeat;
   color: var(--white);
   box-shadow: var(--soft-shadow);
   overflow: hidden;
@@ -1495,7 +1495,7 @@ button {
   border-radius: var(--radius-lg);
   background:
     linear-gradient(135deg, rgba(26, 26, 78, 0.96), rgba(42, 42, 110, 0.86)),
-    url("https://pinnacleups.com/Images/gallery2.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/gallery2.jpg") center/cover no-repeat;
   color: var(--white);
   border: 1px solid rgba(255, 255, 255, 0.2);
   box-shadow: var(--glass-shadow);
@@ -2091,7 +2091,7 @@ td small {
   border-radius: var(--radius);
   background:
     linear-gradient(135deg, rgba(26, 26, 78, 0.94), rgba(42, 42, 110, 0.84)),
-    url("https://pinnacleups.com/Images/gallery1.jpg") center/cover no-repeat;
+    url("https://pinnacleups.com/Images/gallery/gallery1.jpg") center/cover no-repeat;
   color: var(--white);
   overflow: hidden;
 }
@@ -2475,7 +2475,7 @@ td small {
     grid-template-columns: 1fr;
     background:
       linear-gradient(180deg, rgba(13, 13, 48, 0.94) 0, rgba(26, 26, 78, 0.88) 190px, rgba(247, 247, 251, 0.96) 430px),
-      url("https://pinnacleups.com/Images/gallery1.jpg") top center/cover no-repeat;
+      url("https://pinnacleups.com/Images/gallery/gallery1.jpg") top center/cover no-repeat;
     position: relative;
   }
 
@@ -2728,7 +2728,7 @@ td small {
     border-radius: var(--radius);
     background:
       linear-gradient(135deg, rgba(26, 26, 78, 0.94), rgba(42, 42, 110, 0.84)),
-      url("https://pinnacleups.com/Images/gallery3.jpg") center/cover no-repeat;
+      url("https://pinnacleups.com/Images/gallery/gallery3.jpg") center/cover no-repeat;
     color: var(--white);
     box-shadow: var(--soft-shadow);
     overflow: hidden;
